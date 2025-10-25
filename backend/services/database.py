@@ -40,6 +40,8 @@ def create_tables_sql():
         tokens_remaining INTEGER DEFAULT 200,
         weekly_digest_enabled BOOLEAN DEFAULT true,
         weekly_digest_mode VARCHAR(20) DEFAULT 'both', -- 'text' | 'voice' | 'both'
+        org_id UUID REFERENCES orgs(id),
+        role TEXT CHECK (role IN ('admin','analyst','viewer')) DEFAULT 'viewer',
         stripe_customer_id VARCHAR(255),
         subscription_id VARCHAR(255),
         subscription_status VARCHAR(50),
@@ -53,6 +55,8 @@ def create_tables_sql():
     ALTER TABLE users ADD COLUMN IF NOT EXISTS tokens_remaining INTEGER DEFAULT 200;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS weekly_digest_enabled BOOLEAN DEFAULT true;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS weekly_digest_mode VARCHAR(20) DEFAULT 'both';
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS org_id UUID REFERENCES orgs(id);
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT CHECK (role IN ('admin','analyst','viewer')) DEFAULT 'viewer';
 
     -- Sales data table
     CREATE TABLE IF NOT EXISTS sales_data (
@@ -97,8 +101,28 @@ def create_tables_sql():
         created_at TIMESTAMP DEFAULT NOW()
     );
 
+    -- Orgs table
+    CREATE TABLE IF NOT EXISTS orgs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        domain TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- Invitations table (optional)
+    CREATE TABLE IF NOT EXISTS org_invitations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES orgs(id) ON DELETE CASCADE,
+        email TEXT NOT NULL,
+        role TEXT CHECK (role IN ('admin','analyst','viewer')) DEFAULT 'viewer',
+        token TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        accepted BOOLEAN DEFAULT FALSE
+    );
+
     -- Create indexes for better performance
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_users_org_id ON users(org_id);
     CREATE INDEX IF NOT EXISTS idx_sales_data_user_id ON sales_data(user_id);
     CREATE INDEX IF NOT EXISTS idx_analysis_results_user_id ON analysis_results(user_id);
     CREATE INDEX IF NOT EXISTS idx_forecast_results_user_id ON forecast_results(user_id);

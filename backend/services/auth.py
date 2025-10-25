@@ -57,6 +57,8 @@ async def verify_token(token: str) -> Optional[Dict[str, Any]]:
             "email": user["email"],
             "plan": user.get("plan", "free"),
             "tokens_remaining": user.get("tokens_remaining"),
+            "org_id": user.get("org_id"),
+            "role": user.get("role", "viewer"),
             "created_at": user.get("created_at"),
         }
     except JWTError:
@@ -100,6 +102,8 @@ async def verify_token(token: str) -> Optional[Dict[str, Any]]:
             "email": profile.get("email", email),
             "plan": profile.get("plan", "free"),
             "tokens_remaining": profile.get("tokens_remaining", 200),
+            "org_id": profile.get("org_id"),
+            "role": profile.get("role", "viewer"),
             "created_at": profile.get("created_at"),
         }
     except Exception as e:

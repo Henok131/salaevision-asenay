@@ -9,6 +9,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from routers import analyze, forecast, explain, auth, stripe_webhook
 from routers import ocr
+from routers import orgs
 from services.database import init_db
 from services.digest import run_weekly_digest_job
 from services.supabase_client import get_supabase_client
@@ -60,6 +61,7 @@ app.include_router(forecast.router, prefix="/forecast", tags=["forecasting"])
 app.include_router(explain.router, prefix="/explain", tags=["explainability"])
 app.include_router(stripe_webhook.router, prefix="/stripe", tags=["payments"])
 app.include_router(ocr.router, prefix="/ocr", tags=["ocr"])
+app.include_router(orgs.router, prefix="/orgs", tags=["organizations"])
 
 @app.get("/")
 async def root():
