@@ -40,6 +40,23 @@ async def invite_user_to_org(email: str, role: str, org_id: str, credentials: HT
     # TODO: send email with token link
     return {"success": True, "token": token}
 
+@router.post("/accept_invite")
+async def accept_invite(token: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    user = await verify_token(credentials.credentials)
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    supabase = get_supabase_client()
+    inv = supabase.table("org_invitations").select("id,org_id,accepted").eq("token", token).limit(1).execute()
+    if not inv.data:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if inv.data[0].get('accepted'):
+        raise HTTPException(status_code=400, detail="Token already used")
+    org_id = inv.data[0]['org_id']
+    # Attach user to org as viewer by default; admins can change later
+    supabase.table('users').update({'org_id': org_id}).eq('id', user['id']).execute()
+    supabase.table('org_invitations').update({'accepted': True}).eq('id', inv.data[0]['id']).execute()
+    return { 'success': True, 'org_id': org_id }
+
 @router.get("/members")
 async def get_org_members(org_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = await verify_token(credentials.credentials)

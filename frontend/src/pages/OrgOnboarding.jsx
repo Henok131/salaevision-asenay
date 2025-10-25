@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -22,10 +22,31 @@ export default function OrgOnboarding() {
   }
 
   const joinOrgWithToken = async () => {
-    // Placeholder: a real implementation would verify invite token and attach the user to org
     if (!inviteToken) return
-    toast.success('Joined via invite (stub)')
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/orgs/accept_invite?token=${encodeURIComponent(inviteToken)}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.detail || 'Failed to accept invite')
+      toast.success('Joined organization')
+    } catch (e) {
+      toast.error(e.message)
+    }
   }
+
+  // Auto-accept invite if token present in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const t = params.get('token')
+    if (t) {
+      setInviteToken(t)
+      ;(async () => {
+        await joinOrgWithToken()
+      })()
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-dark-bg p-6">

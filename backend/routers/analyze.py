@@ -8,6 +8,7 @@ import json
 from PIL import Image, ImageStat
 from openai import OpenAI
 from services.supabase_client import get_supabase_client
+from routers.insights import evaluate_templates
 from services.auth import verify_token
 
 router = APIRouter()
@@ -86,6 +87,18 @@ async def analyze_sales_data(
         }
         
         result = supabase.table("analysis_results").insert(analysis_result).execute()
+
+        # Evaluate templates on a simple record snapshot
+        record_for_rules = {
+            **({c: df[c].iloc[-1] for c in df.columns if c in df.columns and len(df) > 0} if len(df) > 0 else {}),
+            'sentiment': (text_insight or {}).get('sentiment'),
+            'brightness': (visual_insight or {}).get('brightness'),
+        }
+        matched = evaluate_templates(user.get('org_id'), record_for_rules)
+        if matched:
+            supabase.table('analysis_results').update({
+                'recommendations': (insights.get('recommendations') or []) + [f"Rule matched: {m}" for m in matched]
+            }).eq('id', result.data[0]['id']).execute()
 
         # Deduct tokens_used
         if tokens_used > 0:

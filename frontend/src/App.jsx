@@ -12,6 +12,7 @@ import EmbedViewer from './pages/EmbedViewer'
 import AdminPanel from './pages/AdminPanel'
 import OrgOnboarding from './pages/OrgOnboarding'
 import Plugins from './pages/Plugins'
+import InsightTemplateBuilder from './pages/InsightTemplateBuilder'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
               <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
               <Route path="/onboarding" element={<ProtectedRoute><OrgOnboarding /></ProtectedRoute>} />
               <Route path="/plugins" element={<ProtectedRoute><Plugins /></ProtectedRoute>} />
+              <Route path="/insight-templates" element={<ProtectedRoute><InsightTemplateBuilder /></ProtectedRoute>} />
               <Route 
                 path="/dashboard" 
                 element={

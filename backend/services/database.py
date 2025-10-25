@@ -168,6 +168,9 @@ def create_tables_sql():
         updated_at TIMESTAMP DEFAULT NOW()
     );
     CREATE INDEX IF NOT EXISTS idx_insight_templates_org_id ON insight_templates(org_id);
+
+    -- Ensure columns for older deployments
+    ALTER TABLE insight_templates ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
     CREATE INDEX IF NOT EXISTS idx_sales_data_user_id ON sales_data(user_id);
     CREATE INDEX IF NOT EXISTS idx_analysis_results_user_id ON analysis_results(user_id);
     CREATE INDEX IF NOT EXISTS idx_forecast_results_user_id ON forecast_results(user_id);
