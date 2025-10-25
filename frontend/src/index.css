@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-dark-border;
+  }
+  
+  body {
+    @apply bg-dark-bg text-text-primary font-sans;
+    background: linear-gradient(135deg, #0b1020 0%, #141b2d 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl;
+  }
+  
+  .glass-button {
+    @apply bg-gradient-accent text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-neon-blue hover:scale-105;
+  }
+  
+  .glass-button-secondary {
+    @apply bg-dark-hover backdrop-blur-md border border-dark-border text-text-primary px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:bg-dark-hover/80 hover:scale-105;
+  }
+  
+  .neon-glow {
+    @apply shadow-neon-blue;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent-from via-accent-mid to-accent-to bg-clip-text text-transparent;
+  }
+  
+  .metric-card {
+    @apply bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6 transition-all duration-300 hover:border-accent-from/30 hover:shadow-neon-blue;
+  }
+  
+  .chart-container {
+    @apply bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6;
+  }
+  
+  .sidebar-item {
+    @apply w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-text-secondary hover:bg-dark-hover hover:text-text-primary;
+  }
+  
+  .sidebar-item-active {
+    @apply bg-gradient-glass border border-accent-from/30 text-text-primary shadow-neon-blue;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
