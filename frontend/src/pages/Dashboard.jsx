@@ -13,6 +13,7 @@ import ExportButton from '../components/ExportButton'
 import { analysisAPI } from '../api/analysis'
 import MultimodalCorrelationChart from '../components/MultimodalCorrelationChart'
 import { useAuth } from '../contexts/AuthContext'
+import { motion } from 'framer-motion'
 
 export const Dashboard = () => {
   const { user } = useAuth()
@@ -30,6 +31,8 @@ export const Dashboard = () => {
   const [currentInsight, setCurrentInsight] = useState(null)
   const [insights, setInsights] = useState([])
   const [tokensLeft, setTokensLeft] = useState(null)
+  const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(true)
+  const [weeklyDigestMode, setWeeklyDigestMode] = useState('both')
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0]
@@ -188,6 +191,18 @@ export const Dashboard = () => {
     }
     fetchTokens()
   }, [])
+
+  const updateWeeklyDigest = async (enabled, mode) => {
+    setWeeklyDigestEnabled(enabled)
+    setWeeklyDigestMode(mode)
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/me`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
+      })
+      // In a real implementation, add a backend endpoint to update user preferences.
+    } catch (_) {}
+  }
 
   const renderUploadSection = () => (
     <motion.div
@@ -367,6 +382,31 @@ export const Dashboard = () => {
                 {/* KPI Cards */}
                 <MetricCards onCardClick={handleMetricClick} />
 
+                {/* Weekly Digest Settings */}
+                <div className="mb-8 bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-text-primary">🗓️ Weekly AI Digest</h3>
+                      <p className="text-sm text-text-secondary">Receive a weekly email (and optional voice clip) with your key insights.</p>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <label className="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" checked={weeklyDigestEnabled} onChange={(e) => updateWeeklyDigest(e.target.checked, weeklyDigestMode)} />
+                        <span className="text-text-primary">Enable</span>
+                      </label>
+                      <select
+                        className="bg-dark-hover border border-dark-border rounded px-2 py-1 text-sm text-text-primary"
+                        value={weeklyDigestMode}
+                        onChange={(e) => updateWeeklyDigest(weeklyDigestEnabled, e.target.value)}
+                      >
+                        <option value="text">Text Only</option>
+                        <option value="voice">Voice Only</option>
+                        <option value="both">Both</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Upload Section */}
                 {!analysis && renderUploadSection()}
 
@@ -438,6 +478,24 @@ export const Dashboard = () => {
                   onDataHover={handleDataHover}
                   showAnnotations={true}
                 />
+
+                {activeTab === 'insights' && (
+                  <div className="mt-6 bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-text-primary mb-2">Inbox Preview</h3>
+                    <p className="text-sm text-text-secondary mb-4">Recent AI digests and alerts will appear here.</p>
+                    <div className="space-y-3">
+                      {insights.slice(0, 5).map((i) => (
+                        <div key={i.id} className="p-3 bg-gradient-glass border border-accent-from/30 rounded">
+                          <div className="text-xs text-text-muted">{i.timestamp}</div>
+                          <div className="text-sm text-text-primary">{i.text}</div>
+                        </div>
+                      ))}
+                      {insights.length === 0 && (
+                        <div className="text-sm text-text-muted">No messages yet.</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

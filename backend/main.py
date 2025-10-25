@@ -4,10 +4,13 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from routers import analyze, forecast, explain, auth, stripe_webhook
 from routers import ocr
 from services.database import init_db
+from services.digest import run_weekly_digest_job
 from services.supabase_client import get_supabase_client
 
 load_dotenv()
@@ -16,9 +19,16 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     # Startup
     await init_db()
+    # Schedule weekly digest (every Monday 08:00 UTC)
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(run_weekly_digest_job, CronTrigger(day_of_week='mon', hour=8, minute=0))
+    scheduler.start()
     yield
     # Shutdown
-    pass
+    try:
+        scheduler.shutdown(wait=False)
+    except Exception:
+        pass
 
 app = FastAPI(
     title="SalesVision AI API",

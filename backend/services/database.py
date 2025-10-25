@@ -38,6 +38,8 @@ def create_tables_sql():
         email VARCHAR(255) UNIQUE NOT NULL,
         plan VARCHAR(50) DEFAULT 'free',
         tokens_remaining INTEGER DEFAULT 200,
+        weekly_digest_enabled BOOLEAN DEFAULT true,
+        weekly_digest_mode VARCHAR(20) DEFAULT 'both', -- 'text' | 'voice' | 'both'
         stripe_customer_id VARCHAR(255),
         subscription_id VARCHAR(255),
         subscription_status VARCHAR(50),
@@ -47,8 +49,10 @@ def create_tables_sql():
         updated_at TIMESTAMP DEFAULT NOW()
     );
 
-    -- Ensure tokens column exists for older deployments
+    -- Ensure new columns exist for older deployments
     ALTER TABLE users ADD COLUMN IF NOT EXISTS tokens_remaining INTEGER DEFAULT 200;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS weekly_digest_enabled BOOLEAN DEFAULT true;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS weekly_digest_mode VARCHAR(20) DEFAULT 'both';
 
     -- Sales data table
     CREATE TABLE IF NOT EXISTS sales_data (
