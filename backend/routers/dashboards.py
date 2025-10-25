@@ -19,6 +19,12 @@ async def toggle_public(is_public: bool, credentials: HTTPAuthorizationCredentia
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     supabase = get_supabase_client()
+    # Enforce org policy: allow_public_embeds must be true
+    org = supabase.table("orgs").select("allow_public_embeds").eq("id", user.get("org_id")).execute()
+    allow_embeds = True if not org.data else bool(org.data[0].get("allow_public_embeds", True))
+    if is_public and not allow_embeds:
+        raise HTTPException(status_code=403, detail="Public embeds are disabled for this org")
+
     # For demo, toggle the latest dashboard owned by user
     dash = (
         supabase.table("dashboards").select("id,public_id,is_public").eq("user_id", user["id"]).order("created_at", desc=True).limit(1).execute()

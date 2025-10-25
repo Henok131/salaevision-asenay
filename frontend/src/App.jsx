@@ -9,6 +9,9 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
 import EmbedViewer from './pages/EmbedViewer'
+import AdminPanel from './pages/AdminPanel'
+import OrgOnboarding from './pages/OrgOnboarding'
+import Plugins from './pages/Plugins'
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/embed/:id" element={<EmbedViewer />} />
+              <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+              <Route path="/onboarding" element={<ProtectedRoute><OrgOnboarding /></ProtectedRoute>} />
+              <Route path="/plugins" element={<ProtectedRoute><Plugins /></ProtectedRoute>} />
               <Route 
                 path="/dashboard" 
                 element={

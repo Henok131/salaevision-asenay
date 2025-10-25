@@ -60,3 +60,23 @@ async def get_user_org(credentials: HTTPAuthorizationCredentials = Depends(secur
         o = supabase.table("orgs").select("id,name,domain").eq("id", user["org_id"]).execute()
         org = o.data[0] if o.data else None
     return {"user": user, "org": org}
+
+@router.post("/assign_role")
+async def assign_role(user_id: str, role: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current = await verify_token(credentials.credentials)
+    if not current:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    if role not in ("admin", "analyst", "viewer"):
+        raise HTTPException(status_code=400, detail="Invalid role")
+    supabase = get_supabase_client()
+    # Ensure current user is admin in the same org
+    cur = supabase.table("users").select("org_id,role").eq("id", current["id"]).execute()
+    if not cur.data:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if cur.data[0].get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    org_id = cur.data[0].get("org_id")
+    upd = supabase.table("users").update({"role": role}).eq("id", user_id).eq("org_id", org_id).execute()
+    if not upd.data:
+        raise HTTPException(status_code=500, detail="Failed to update role")
+    return {"success": True}

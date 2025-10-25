@@ -139,6 +139,35 @@ def create_tables_sql():
     );
     CREATE INDEX IF NOT EXISTS idx_dashboards_user_id ON dashboards(user_id);
     CREATE INDEX IF NOT EXISTS idx_dashboards_org_id ON dashboards(org_id);
+
+    -- Ensure dashboards columns exist in older deployments
+    ALTER TABLE dashboards ADD COLUMN IF NOT EXISTS org_id UUID REFERENCES orgs(id) ON DELETE SET NULL;
+    ALTER TABLE dashboards ADD COLUMN IF NOT EXISTS public_id TEXT UNIQUE;
+    ALTER TABLE dashboards ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT FALSE;
+
+    -- Org plugins table
+    CREATE TABLE IF NOT EXISTS org_plugins (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES orgs(id) ON DELETE CASCADE,
+        plugin TEXT NOT NULL,
+        enabled BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(org_id, plugin)
+    );
+    CREATE INDEX IF NOT EXISTS idx_org_plugins_org_id ON org_plugins(org_id);
+
+    -- Insight templates (no-code rules)
+    CREATE TABLE IF NOT EXISTS insight_templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES orgs(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        name TEXT NOT NULL,
+        rules JSONB NOT NULL,
+        active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_insight_templates_org_id ON insight_templates(org_id);
     CREATE INDEX IF NOT EXISTS idx_sales_data_user_id ON sales_data(user_id);
     CREATE INDEX IF NOT EXISTS idx_analysis_results_user_id ON analysis_results(user_id);
     CREATE INDEX IF NOT EXISTS idx_forecast_results_user_id ON forecast_results(user_id);
