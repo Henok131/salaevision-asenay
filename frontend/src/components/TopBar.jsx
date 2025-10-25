@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Bell, User, Crown, Zap, Brain, Download, Volume2 } from 'lucide-react'
 import useVoiceNarration from '../hooks/useVoiceNarration'
+import { downloadDashboardPDF } from '../utils/pdfExport'
 
 export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiInsightsOpen = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -115,11 +116,17 @@ export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiIn
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={onExport}
+            onClick={async () => {
+              await downloadDashboardPDF({
+                chartSelector: '#multimodal-corr-chart',
+                summaryText: 'Automated AI insights with multimodal correlation and forecast context.',
+                userLabel: user?.email || 'User',
+              })
+            }}
             className="flex items-center space-x-2 px-3 py-2 bg-dark-hover text-text-secondary hover:text-text-primary rounded-lg transition-colors"
           >
             <Download className="h-4 w-4" />
-            <span className="text-sm font-medium">Export</span>
+            <span className="text-sm font-medium">Download PDF</span>
           </motion.button>
 
           {/* Plan Badge */}

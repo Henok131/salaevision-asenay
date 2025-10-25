@@ -18,6 +18,7 @@ export const Dashboard = () => {
   const { user } = useAuth()
   const [uploadedFile, setUploadedFile] = useState(null)
   const [uploadedImage, setUploadedImage] = useState(null)
+  const [ocrImage, setOcrImage] = useState(null)
   const [campaignText, setCampaignText] = useState('')
   const [analysis, setAnalysis] = useState(null)
   const [forecast, setForecast] = useState(null)
@@ -54,6 +55,16 @@ export const Dashboard = () => {
     setUploadedImage(file)
   }
 
+  const handleOcrUpload = (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file for OCR')
+      return
+    }
+    setOcrImage(file)
+  }
+
   const handleTextChange = (event) => {
     setCampaignText(event.target.value)
   }
@@ -73,6 +84,31 @@ export const Dashboard = () => {
     } catch (error) {
       const msg = error?.response?.data?.detail || 'Analysis failed. Please try again.'
       toast.error(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOcrExtract = async () => {
+    if (!ocrImage) {
+      toast.error('Upload an image for OCR first')
+      return
+    }
+    try {
+      setLoading(true)
+      const form = new FormData()
+      form.append('file', ocrImage)
+      const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/ocr/`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
+        body: form,
+      })
+      const json = await resp.json()
+      if (!resp.ok) throw new Error(json?.detail || 'OCR failed')
+      setInsights(prev => [{ id: Date.now(), text: `OCR: ${json.text?.slice(0, 300) || ''}`, timestamp: new Date().toLocaleTimeString(), type: 'ocr' }, ...prev])
+      toast.success('OCR extracted successfully')
+    } catch (e) {
+      toast.error(e.message || 'OCR failed')
     } finally {
       setLoading(false)
     }
@@ -333,6 +369,38 @@ export const Dashboard = () => {
 
                 {/* Upload Section */}
                 {!analysis && renderUploadSection()}
+
+                {/* OCR Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6 mb-8"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-text-primary font-semibold">OCR Extraction</div>
+                    <button
+                      onClick={handleOcrExtract}
+                      className="px-4 py-2 rounded-lg bg-dark-hover text-text-secondary hover:text-text-primary border border-dark-border"
+                      disabled={!ocrImage || loading}
+                    >
+                      {loading ? 'Extracting...' : 'Extract Text'}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="bg-dark-hover hover:bg-dark-hover/80 text-text-primary px-4 py-2 rounded-lg cursor-pointer inline-block transition-colors">
+                        <input type="file" accept="image/*" onChange={handleOcrUpload} className="hidden" />
+                        Choose Image for OCR
+                      </label>
+                      {ocrImage && (
+                        <div className="mt-2 text-xs text-neon-green">✓ {ocrImage.name}</div>
+                      )}
+                    </div>
+                    <div className="p-3 bg-gradient-glass border border-accent-from/30 rounded-lg text-sm text-text-primary min-h-[60px]">
+                      {insights.find(i => i.type === 'ocr')?.text || 'Extracted text will appear here.'}
+                    </div>
+                  </div>
+                </motion.div>
 
                 {/* Charts */}
                 <InteractiveCharts 

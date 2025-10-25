@@ -166,6 +166,7 @@ export const MultimodalCorrelationChart = ({ data = [] }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6 shadow-neon-blue"
+      id="multimodal-corr-chart"
     >
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-text-primary mb-2">
