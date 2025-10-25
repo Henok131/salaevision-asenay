@@ -106,6 +106,7 @@ def create_tables_sql():
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name TEXT NOT NULL,
         domain TEXT,
+        allow_public_embeds BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT NOW()
     );
 
@@ -123,6 +124,21 @@ def create_tables_sql():
     -- Create indexes for better performance
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_org_id ON users(org_id);
+    
+    -- Dashboards table (for embeddable charts)
+    CREATE TABLE IF NOT EXISTS dashboards (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        org_id UUID REFERENCES orgs(id) ON DELETE SET NULL,
+        name TEXT,
+        data JSONB,
+        public_id TEXT UNIQUE,
+        is_public BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_dashboards_user_id ON dashboards(user_id);
+    CREATE INDEX IF NOT EXISTS idx_dashboards_org_id ON dashboards(org_id);
     CREATE INDEX IF NOT EXISTS idx_sales_data_user_id ON sales_data(user_id);
     CREATE INDEX IF NOT EXISTS idx_analysis_results_user_id ON analysis_results(user_id);
     CREATE INDEX IF NOT EXISTS idx_forecast_results_user_id ON forecast_results(user_id);

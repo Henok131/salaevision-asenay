@@ -5,6 +5,7 @@ import os
 import uuid
 from services.supabase_client import get_supabase_client
 from services.auth import verify_token
+import uuid as _uuid
 
 router = APIRouter()
 security = HTTPBearer()
@@ -32,7 +33,7 @@ async def invite_user_to_org(email: str, role: str, org_id: str, credentials: HT
     if role not in ("admin", "analyst", "viewer"):
         raise HTTPException(status_code=400, detail="Invalid role")
     supabase = get_supabase_client()
-    token = str(uuid.uuid4())
+    token = str(_uuid.uuid4())
     inv = supabase.table("org_invitations").insert({"org_id": org_id, "email": email, "role": role, "token": token}).execute()
     if not inv.data:
         raise HTTPException(status_code=500, detail="Failed to create invitation")

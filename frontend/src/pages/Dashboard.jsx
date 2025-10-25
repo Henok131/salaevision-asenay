@@ -14,6 +14,7 @@ import { analysisAPI } from '../api/analysis'
 import MultimodalCorrelationChart from '../components/MultimodalCorrelationChart'
 import { useAuth } from '../contexts/AuthContext'
 import { motion } from 'framer-motion'
+import CopyEmbedCode from '../components/CopyEmbedCode'
 
 export const Dashboard = () => {
   const { user } = useAuth()
@@ -33,6 +34,8 @@ export const Dashboard = () => {
   const [tokensLeft, setTokensLeft] = useState(null)
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(true)
   const [weeklyDigestMode, setWeeklyDigestMode] = useState('both')
+  const [dashboardPublic, setDashboardPublic] = useState(false)
+  const [dashboardPublicId, setDashboardPublicId] = useState(null)
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0]
@@ -202,6 +205,27 @@ export const Dashboard = () => {
       })
       // In a real implementation, add a backend endpoint to update user preferences.
     } catch (_) {}
+  }
+
+  const canShare = (user?.role === 'admin' || user?.role === 'analyst')
+
+  const togglePublic = async () => {
+    try {
+      const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/dashboards/toggle_public`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
+        },
+        body: JSON.stringify({ is_public: !dashboardPublic }),
+      })
+      const json = await resp.json()
+      if (!resp.ok) throw new Error(json?.detail || 'Failed to update public status')
+      setDashboardPublic(json.is_public)
+      setDashboardPublicId(json.public_id)
+    } catch (e) {
+      // surface error minimal
+    }
   }
 
   const renderUploadSection = () => (
@@ -406,6 +430,22 @@ export const Dashboard = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Sharing / Embed */}
+                {canShare && (
+                  <div className="mb-8 bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-text-primary">🔗 Share Dashboard</h3>
+                      <label className="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" checked={dashboardPublic} onChange={togglePublic} />
+                        <span className="text-text-primary">Share publicly</span>
+                      </label>
+                    </div>
+                    {dashboardPublic && dashboardPublicId && (
+                      <CopyEmbedCode publicId={dashboardPublicId} />
+                    )}
+                  </div>
+                )}
 
                 {/* Upload Section */}
                 {!analysis && renderUploadSection()}
