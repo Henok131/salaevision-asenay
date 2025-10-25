@@ -1,21 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import pandas as pd
-import openai
 import os
 import io
 from typing import Dict, Any, Optional
 import json
 from PIL import Image, ImageStat
-import colorsys
+from openai import OpenAI
 from services.supabase_client import get_supabase_client
 from services.auth import verify_token
 
 router = APIRouter()
 security = HTTPBearer()
 
-# Initialize OpenAI
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI (v1 client)
+_openai_client = OpenAI()
 
 @router.post("/")
 async def analyze_sales_data(
@@ -94,16 +93,16 @@ async def analyze_text_sentiment(text: str) -> Dict[str, Any]:
     Analyze text sentiment and tone using OpenAI
     """
     try:
-        response = openai.ChatCompletion.create(
+        response = _openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a marketing sentiment analyst. Analyze the tone, sentiment, and key themes of marketing text."},
                 {"role": "user", "content": f"Analyze the tone and sentiment of this marketing text: {text}"}
             ],
             max_tokens=200,
-            temperature=0.7
+            temperature=0.7,
         )
-        
+
         analysis = response.choices[0].message.content
         
         return {
@@ -220,16 +219,16 @@ async def generate_multimodal_insights(df: pd.DataFrame, text_insight: Optional[
         Format your response as JSON with keys: summary, key_factors, recommendations, visual_insight, text_insight
         """
         
-        response = openai.ChatCompletion.create(
+        response = _openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a multimodal sales analytics expert. Analyze sales data, marketing text, and visual elements to provide integrated, explainable insights."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1200,
-            temperature=0.7
+            temperature=0.7,
         )
-        
+
         # Parse AI response
         ai_response = response.choices[0].message.content
         
@@ -316,3 +315,30 @@ def get_date_range(df: pd.DataFrame) -> Dict[str, str]:
         }
     except:
         return None
+
+
+@router.get("/history/")
+async def get_analysis_history(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    limit: int = 20,
+):
+    """Return recent analysis results for the authenticated user."""
+    try:
+        user = await verify_token(credentials.credentials)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid authentication")
+
+        supabase = get_supabase_client()
+        result = (
+            supabase
+            .table("analysis_results")
+            .select("*")
+            .eq("user_id", user["id"])
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+
+        return {"results": result.data or []}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch history: {str(e)}")

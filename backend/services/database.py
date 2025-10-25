@@ -1,17 +1,24 @@
 import os
 from supabase import create_client
 from services.supabase_client import get_supabase_client
+from sqlalchemy import create_engine, text
 
 async def init_db():
     """
     Initialize database tables and setup
     """
     try:
-        supabase = get_supabase_client()
-        
-        # Check if tables exist and create if needed
-        # Note: In production, you would use Supabase migrations
-        # This is a simplified version for demo purposes
+        # Attempt to run migrations using DATABASE_URL if provided
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            engine = create_engine(database_url)
+            with engine.begin() as conn:
+                conn.execute(text(create_tables_sql()))
+            print("Database migrations applied via SQLAlchemy")
+        else:
+            # Fallback: no direct DB connection available (e.g., Supabase). Log SQL for manual application.
+            print("DATABASE_URL not set; skipping automatic migrations. Apply the following SQL in Supabase:")
+            print(create_tables_sql())
         
         print("Database initialization completed")
         

@@ -23,6 +23,11 @@ export const AuthProvider = ({ children }) => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
+      // Persist access_token for backend Authorization
+      const accessToken = session?.access_token || session?.session?.access_token
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken)
+      }
       setLoading(false)
     })
 
@@ -31,6 +36,12 @@ export const AuthProvider = ({ children }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      const accessToken = session?.access_token || session?.session?.access_token
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken)
+      } else {
+        localStorage.removeItem('access_token')
+      }
       setLoading(false)
     })
 
@@ -47,6 +58,10 @@ export const AuthProvider = ({ children }) => {
         },
       },
     })
+    const accessToken = data?.session?.access_token
+    if (accessToken) {
+      localStorage.setItem('access_token', accessToken)
+    }
     return { data, error }
   }
 
@@ -55,11 +70,16 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
     })
+    const accessToken = data?.session?.access_token
+    if (accessToken) {
+      localStorage.setItem('access_token', accessToken)
+    }
     return { data, error }
   }
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
+    localStorage.removeItem('access_token')
     return { error }
   }
 

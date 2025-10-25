@@ -10,6 +10,7 @@ import { MetricCards } from '../components/MetricCards'
 import { InteractiveCharts } from '../components/InteractiveCharts'
 import AIInsightsPanel from '../components/AIInsightsPanel'
 import ExportButton from '../components/ExportButton'
+import { analysisAPI } from '../api/analysis'
 
 export const Dashboard = () => {
   const { user } = useAuth()
@@ -63,41 +64,12 @@ export const Dashboard = () => {
     setLoading(true)
 
     try {
-      // Simulate API call with multimodal data
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      
-      // Mock multimodal analysis results
-      const mockAnalysis = {
-        summary: "Your sales data shows strong growth potential with seasonal patterns. Combined with your marketing tone and visual elements, the analysis reveals both data-driven and creative drivers of success.",
-        keyFactors: [
-          { name: "Marketing Spend", impact: 0.35, trend: "up" },
-          { name: "Customer Satisfaction", impact: 0.28, trend: "up" },
-          { name: "Product Price", impact: 0.22, trend: "down" },
-          { name: "Seasonal Trends", impact: 0.15, trend: "stable" }
-        ],
-        recommendations: [
-          "Increase marketing budget by 20% for Q2",
-          "Focus on customer retention strategies",
-          "Optimize pricing for competitive advantage",
-          "Implement seasonal marketing campaigns"
-        ],
-        text_insight: campaignText ? {
-          tone: "The marketing text shows a confident, optimistic tone with emphasis on value and quality.",
-          sentiment: "positive",
-          key_themes: ["Quality", "Innovation"]
-        } : null,
-        visual_insight: uploadedImage ? {
-          brightness: 180,
-          dominant_color: "#4A90E2",
-          characteristics: "Well-lit, Blue-dominant, Square format",
-          dimensions: "800x600"
-        } : null
-      }
-
-      setAnalysis(mockAnalysis)
+      const result = await analysisAPI.analyzeData(uploadedFile, uploadedImage, campaignText)
+      setAnalysis(result)
       toast.success('Multimodal analysis completed successfully!')
     } catch (error) {
-      toast.error('Analysis failed. Please try again.')
+      const msg = error?.response?.data?.detail || 'Analysis failed. Please try again.'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
