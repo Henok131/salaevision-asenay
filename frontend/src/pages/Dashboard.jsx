@@ -11,6 +11,7 @@ import { InteractiveCharts } from '../components/InteractiveCharts'
 import AIInsightsPanel from '../components/AIInsightsPanel'
 import ExportButton from '../components/ExportButton'
 import { analysisAPI } from '../api/analysis'
+import MultimodalCorrelationChart from '../components/MultimodalCorrelationChart'
 
 export const Dashboard = () => {
   const { user } = useAuth()
@@ -310,6 +311,18 @@ export const Dashboard = () => {
                   onDataHover={handleDataHover}
                   showAnnotations={true}
                 />
+
+        {/* Multimodal Correlation Section */}
+        <div className="mt-8">
+          <MultimodalCorrelationChart
+            data={Array.from({ length: 40 }).map(() => ({
+              sentiment: Math.random(),
+              brightness: Math.random() * 100,
+              sales: Math.random() * 2500 + 500,
+              variance: (Math.random() - 0.5) * 0.6, // -0.3..0.3
+            }))}
+          />
+        </div>
               </motion.div>
             )}
 
