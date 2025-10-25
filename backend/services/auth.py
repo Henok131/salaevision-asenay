@@ -56,6 +56,7 @@ async def verify_token(token: str) -> Optional[Dict[str, Any]]:
             "id": user["id"],
             "email": user["email"],
             "plan": user.get("plan", "free"),
+            "tokens_remaining": user.get("tokens_remaining"),
             "created_at": user.get("created_at"),
         }
     except JWTError:
@@ -90,14 +91,15 @@ async def verify_token(token: str) -> Optional[Dict[str, Any]]:
         # Fetch user profile (ignore if not present)
         try:
             result = supabase_client.table("users").select("*").eq("id", user_id).execute()
-            profile = result.data[0] if result.data else {"id": user_id, "email": email, "plan": "free"}
+            profile = result.data[0] if result.data else {"id": user_id, "email": email, "plan": "free", "tokens_remaining": 200}
         except Exception:
-            profile = {"id": user_id, "email": email, "plan": "free"}
+            profile = {"id": user_id, "email": email, "plan": "free", "tokens_remaining": 200}
 
         return {
             "id": profile["id"],
             "email": profile.get("email", email),
             "plan": profile.get("plan", "free"),
+            "tokens_remaining": profile.get("tokens_remaining", 200),
             "created_at": profile.get("created_at"),
         }
     except Exception as e:

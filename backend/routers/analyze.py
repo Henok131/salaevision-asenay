@@ -44,6 +44,22 @@ async def analyze_sales_data(
         if df.empty:
             raise HTTPException(status_code=400, detail="CSV file is empty")
         
+        # Token usage (1 token = 100 words)
+        tokens_used = 0
+        if text:
+            # Approximate word count
+            words = len(text.split())
+            tokens_used = max(tokens_used, (words + 99) // 100)
+
+        # Validate token availability for user (from users table)
+        supabase = get_supabase_client()
+        user_row = supabase.table("users").select("id,tokens_remaining,plan").eq("id", user["id"]).execute()
+        if not user_row.data:
+            raise HTTPException(status_code=403, detail="User profile not found")
+        remaining = (user_row.data[0] or {}).get("tokens_remaining", 0)
+        if tokens_used > 0 and remaining < tokens_used:
+            raise HTTPException(status_code=402, detail="Insufficient tokens. Please upgrade your plan.")
+
         # Process multimodal inputs
         text_insight = None
         visual_insight = None
@@ -58,7 +74,6 @@ async def analyze_sales_data(
         insights = await generate_multimodal_insights(df, text_insight, visual_insight)
         
         # Store analysis results in Supabase
-        supabase = get_supabase_client()
         analysis_result = {
             "user_id": user["id"],
             "filename": file.filename,
@@ -71,6 +86,11 @@ async def analyze_sales_data(
         }
         
         result = supabase.table("analysis_results").insert(analysis_result).execute()
+
+        # Deduct tokens_used
+        if tokens_used > 0:
+            new_remaining = max(0, int(remaining) - int(tokens_used))
+            supabase.table("users").update({"tokens_remaining": new_remaining}).eq("id", user["id"]).execute()
         
         return {
             "success": True,

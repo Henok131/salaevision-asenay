@@ -37,6 +37,7 @@ def create_tables_sql():
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         email VARCHAR(255) UNIQUE NOT NULL,
         plan VARCHAR(50) DEFAULT 'free',
+        tokens_remaining INTEGER DEFAULT 200,
         stripe_customer_id VARCHAR(255),
         subscription_id VARCHAR(255),
         subscription_status VARCHAR(50),
@@ -45,6 +46,9 @@ def create_tables_sql():
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
     );
+
+    -- Ensure tokens column exists for older deployments
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS tokens_remaining INTEGER DEFAULT 200;
 
     -- Sales data table
     CREATE TABLE IF NOT EXISTS sales_data (

@@ -12,6 +12,7 @@ import AIInsightsPanel from '../components/AIInsightsPanel'
 import ExportButton from '../components/ExportButton'
 import { analysisAPI } from '../api/analysis'
 import MultimodalCorrelationChart from '../components/MultimodalCorrelationChart'
+import { useAuth } from '../contexts/AuthContext'
 
 export const Dashboard = () => {
   const { user } = useAuth()
@@ -27,6 +28,7 @@ export const Dashboard = () => {
   const [aiInsightsOpen, setAiInsightsOpen] = useState(false)
   const [currentInsight, setCurrentInsight] = useState(null)
   const [insights, setInsights] = useState([])
+  const [tokensLeft, setTokensLeft] = useState(null)
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0]
@@ -131,6 +133,25 @@ export const Dashboard = () => {
   const toggleAIInsights = () => {
     setAiInsightsOpen(!aiInsightsOpen)
   }
+
+  useEffect(() => {
+    // Fetch tokens remaining for badge if available via Supabase auth metadata
+    // In a real app, fetch from backend /auth/me which now uses Supabase JWT
+    const fetchTokens = async () => {
+      try {
+        const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/me`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
+        })
+        if (resp.ok) {
+          const json = await resp.json()
+          setTokensLeft(json?.user?.tokens_remaining ?? null)
+        }
+      } catch (_) {
+        // ignore
+      }
+    }
+    fetchTokens()
+  }, [])
 
   const renderUploadSection = () => (
     <motion.div
@@ -259,6 +280,15 @@ export const Dashboard = () => {
           onExport={() => {/* Export functionality will be handled by ExportButton component */}}
           aiInsightsOpen={aiInsightsOpen}
         />
+        {tokensLeft !== null && (
+          <div className="px-6 pt-3">
+            <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-lg text-xs border ${tokensLeft < 10 ? 'border-neon-red text-neon-red bg-neon-red/10' : 'border-neon-blue text-neon-blue bg-neon-blue/10'}`}>
+              <span>Tokens Left:</span>
+              <span className="font-semibold">{tokensLeft}</span>
+              {tokensLeft < 10 && <span className="ml-1">(Low)</span>}
+            </div>
+          </div>
+        )}
 
         {/* Mobile Menu Button */}
         <button

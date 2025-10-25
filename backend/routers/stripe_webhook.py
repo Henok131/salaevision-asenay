@@ -56,20 +56,23 @@ async def handle_subscription_created(subscription: Dict[str, Any]):
         customer_id = subscription['customer']
         plan_id = subscription['items']['data'][0]['price']['id']
         
-        # Map Stripe price IDs to our plan names
+        # Map Stripe price IDs to our plan names and token allotments
         plan_mapping = {
-            "price_pro_monthly": "pro",
-            "price_business_monthly": "business"
+            "price_free": ("free", 200),
+            "price_starter": ("starter", 1000),
+            "price_pro": ("pro", 2000),
+            "price_business": ("enterprise", 10_000_000),  # effectively unlimited
         }
-        
-        plan_name = plan_mapping.get(plan_id, "free")
+
+        plan_name, monthly_tokens = plan_mapping.get(plan_id, ("free", 200))
         
         # Update user plan in Supabase
         supabase = get_supabase_client()
         supabase.table("users").update({
             "plan": plan_name,
             "stripe_customer_id": customer_id,
-            "subscription_id": subscription['id']
+            "subscription_id": subscription['id'],
+            "tokens_remaining": monthly_tokens,
         }).eq("stripe_customer_id", customer_id).execute()
         
     except Exception as e:
@@ -81,11 +84,21 @@ async def handle_subscription_updated(subscription: Dict[str, Any]):
         customer_id = subscription['customer']
         status = subscription['status']
         
-        # Update subscription status
+        # Update subscription status; if active and plan changed, reset tokens
+        price_id = subscription['items']['data'][0]['price']['id'] if subscription['items']['data'] else None
+        plan_mapping = {
+            "price_free": ("free", 200),
+            "price_starter": ("starter", 1000),
+            "price_pro": ("pro", 2000),
+            "price_business": ("enterprise", 10_000_000),
+        }
+        plan_name, monthly_tokens = plan_mapping.get(price_id, (None, None))
+
         supabase = get_supabase_client()
-        supabase.table("users").update({
-            "subscription_status": status
-        }).eq("stripe_customer_id", customer_id).execute()
+        update_payload = {"subscription_status": status}
+        if plan_name:
+            update_payload.update({"plan": plan_name, "tokens_remaining": monthly_tokens})
+        supabase.table("users").update(update_payload).eq("stripe_customer_id", customer_id).execute()
         
     except Exception as e:
         print(f"Error handling subscription updated: {e}")
