@@ -38,8 +38,8 @@ def create_tables_sql():
         email VARCHAR(255) UNIQUE NOT NULL,
         plan VARCHAR(50) DEFAULT 'free',
         tokens_remaining INTEGER DEFAULT 200,
-        weekly_digest_enabled BOOLEAN DEFAULT true,
-        weekly_digest_mode VARCHAR(20) DEFAULT 'both', -- 'text' | 'voice' | 'both'
+        weekly_digest_enabled BOOLEAN DEFAULT false,
+        weekly_digest_mode VARCHAR(20) DEFAULT 'text', -- 'text' | 'voice' | 'both'
         org_id UUID REFERENCES orgs(id),
         role TEXT CHECK (role IN ('admin','analyst','viewer')) DEFAULT 'viewer',
         stripe_customer_id VARCHAR(255),

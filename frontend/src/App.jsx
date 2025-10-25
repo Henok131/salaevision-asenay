@@ -8,6 +8,7 @@ import { Signup } from './pages/Signup'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
+import EmbedViewer from './pages/EmbedViewer'
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/embed/:id" element={<EmbedViewer />} />
               <Route 
                 path="/dashboard" 
                 element={
