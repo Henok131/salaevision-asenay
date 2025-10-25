@@ -84,6 +84,25 @@ const CustomTooltip = ({ active, payload }) => {
   )
 }
 
+// Custom dot with hover pulse/scale
+const DotShape = (props) => {
+  const { cx, cy, size, payload } = props
+  const r = Math.max(6, Math.sqrt(size || 64))
+  const fill = getVarianceColor(payload?.variance)
+
+  return (
+    <motion.circle
+      cx={cx}
+      cy={cy}
+      r={r}
+      fill={fill}
+      initial={{ scale: 1, filter: 'drop-shadow(0 0 0px rgba(120,200,255,0))' }}
+      whileHover={{ scale: 1.2, filter: 'drop-shadow(0 0 8px rgba(120,200,255,0.8))' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    />
+  )
+}
+
 export const MultimodalCorrelationChart = ({ data = [] }) => {
   const prepared = useMemo(() => {
     if (!Array.isArray(data) || data.length === 0) return []
@@ -116,11 +135,37 @@ export const MultimodalCorrelationChart = ({ data = [] }) => {
     return `Highest sales observed at brightness ${bright ? '>' : '<='} 70 and sentiment ${pos ? '>' : '<='} 0.8. ${segText}.`
   }, [prepared])
 
+  // Linear regression y = a*x + b for brightness vs sentiment
+  const regression = useMemo(() => {
+    if (prepared.length < 2) return null
+    const n = prepared.length
+    const sumX = prepared.reduce((s, d) => s + d.sentiment, 0)
+    const sumY = prepared.reduce((s, d) => s + d.brightness, 0)
+    const sumXY = prepared.reduce((s, d) => s + d.sentiment * d.brightness, 0)
+    const sumXX = prepared.reduce((s, d) => s + d.sentiment * d.sentiment, 0)
+    const denom = n * sumXX - sumX * sumX
+    if (denom === 0) return null
+    const a = (n * sumXY - sumX * sumY) / denom
+    const b = (sumY - a * sumX) / n
+    return { a, b }
+  }, [prepared])
+
+  const regPoints = useMemo(() => {
+    if (!regression) return []
+    const clamp = (y) => Math.max(0, Math.min(100, y))
+    const y0 = clamp(regression.a * 0 + regression.b)
+    const y1 = clamp(regression.a * 1 + regression.b)
+    return [
+      { sentiment: 0, brightness: y0 },
+      { sentiment: 1, brightness: y1 },
+    ]
+  }, [regression])
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6"
+      className="bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6 shadow-neon-blue"
     >
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-text-primary mb-2">
@@ -160,11 +205,18 @@ export const MultimodalCorrelationChart = ({ data = [] }) => {
             <ZAxis dataKey="sales" range={[60, 360]} domain={sizeDomain} name="Sales" />
             <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#394867', strokeDasharray: '3 3' }} />
             <Legend />
-            <Scatter data={prepared} shape="circle">
+            <Scatter data={prepared} shape={<DotShape />} isAnimationActive animationDuration={600}>
               {prepared.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={getVarianceColor(entry.variance)} />
               ))}
             </Scatter>
+            {regPoints.length === 2 && (
+              <Scatter
+                data={regPoints}
+                line={{ stroke: '#4ade80', strokeWidth: 2, strokeDasharray: '6 4' }}
+                shape={() => null}
+              />
+            )}
           </ScatterChart>
         </ResponsiveContainer>
       </div>

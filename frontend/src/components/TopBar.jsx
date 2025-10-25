@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, User, Crown, Zap, Brain, Download } from 'lucide-react'
+import { Bell, User, Crown, Zap, Brain, Download, Volume2 } from 'lucide-react'
+import useVoiceNarration from '../hooks/useVoiceNarration'
 
 export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiInsightsOpen = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const { enabled, setEnabled, narrateInsight, speaking } = useVoiceNarration({ rate: 1.0, pitch: 1.0 })
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -65,6 +67,26 @@ export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiIn
 
         {/* Right side - User info and notifications */}
         <div className="flex items-center space-x-4">
+          {/* Voice Narration Toggle */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setEnabled(!enabled)}
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all border border-dark-border ${
+              enabled ? 'bg-neon-green/20 text-neon-green shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-dark-hover text-text-secondary hover:text-text-primary'
+            }`}
+            title="Enable Voice Narration"
+          >
+            <Volume2 className={`h-4 w-4 ${enabled ? 'text-neon-green' : ''}`} />
+            <span className="text-sm font-medium">Voice</span>
+            {enabled && (
+              <motion.div
+                animate={{ scale: speaking ? [1, 1.2, 1] : 1 }}
+                transition={{ duration: 0.6, repeat: speaking ? Infinity : 0 }}
+                className="w-2 h-2 bg-neon-green rounded-full"
+              />
+            )}
+          </motion.button>
           {/* AI Insights Toggle */}
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -129,6 +151,11 @@ export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiIn
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="flex items-center space-x-3 p-2 hover:bg-dark-hover rounded-lg transition-colors cursor-pointer"
+            onClick={() => {
+              if (enabled) {
+                narrateInsight('AI insights are enabled. Get ready for narrated analytics as they arrive.')
+              }
+            }}
           >
             <div className="w-8 h-8 bg-gradient-accent rounded-full flex items-center justify-center">
               <span className="text-sm font-bold text-white">
