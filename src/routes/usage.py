@@ -3,13 +3,14 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from utils.db_utils import supabase
 from routes.auth import get_current_user
 from utils.ratelimit import limiter, auth_key
+import os
 
 router = APIRouter()
 security = HTTPBearer()
 
 
 @router.get("/history")
-@limiter.limit("30/minute", key_func=auth_key)
+@limiter.limit(f"{int(os.environ['RATE_LIMIT_USAGE'])}/minute", key_func=auth_key)
 async def usage_history(user=Depends(get_current_user), days: int = 30):
     sb = supabase()
     res = sb.table('usage_events').select('tokens_used,created_at').eq('user_id', user['id']).execute()

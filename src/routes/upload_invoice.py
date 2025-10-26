@@ -19,10 +19,11 @@ async def upload_invoice(lead_id: str, file: UploadFile = File(...), user = Depe
         raise HTTPException(status_code=404, detail='Lead not found')
 
     content = await file.read()
-    # Upload to Supabase Storage (assumes bucket 'invoices' exists)
+    # Upload to Supabase Storage (bucket from env)
+    bucket = os.environ['STORAGE_INVOICE_BUCKET']
     path = f"{lead_id}/{file.filename}"
     try:
-        sb.storage.from_('invoices').upload(path, content, {
+        sb.storage.from_(bucket).upload(path, content, {
             'content-type': file.content_type or 'application/octet-stream',
             'upsert': True
         })
