@@ -4,7 +4,7 @@ import { appConfig } from '../config/appConfig'
 
 const supabaseUrl = appConfig.supabaseUrl
 const supabaseKey = appConfig.supabaseAnonKey
-const supabase = createClient(supabaseUrl, supabaseKey)
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 const AuthContext = createContext({})
 
