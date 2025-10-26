@@ -13,6 +13,9 @@ from routes.email import router as email_router
 from routes.automation import router as automation_router
 from routes.customer_profile import router as profile_router
 from routes.funnel_stats import router as funnel_router
+from routes.search_leads import router as search_router
+from routes.recommendation import router as rec_router
+from routes.upload_invoice import router as invoice_router
 from utils.ratelimit import limiter
 from utils.logger import configure_logging
 
@@ -54,6 +57,9 @@ app.include_router(usage_router, prefix="/usage", tags=["usage"])
 app.include_router(automation_router, prefix="/automation", tags=["automation"])
 app.include_router(profile_router, tags=["profile"])  # includes /customer_profile/{id}
 app.include_router(funnel_router, tags=["funnel"])    # includes /funnel-stats
+app.include_router(search_router, tags=["search"])    # includes /search_leads
+app.include_router(rec_router, tags=["recommendation"]) # includes /recommendation/{lead_id}
+app.include_router(invoice_router, tags=["invoices"])    # includes /upload_invoice/{lead_id}
 
 
 # Initialize logging
