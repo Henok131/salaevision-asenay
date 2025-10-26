@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS leads (
   source TEXT,
   score INT,
   reason TEXT,
+  last_contacted_at TIMESTAMP,
+  reminder_enabled BOOLEAN DEFAULT FALSE,
+  reminder_sent BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW()
 );
 

@@ -10,6 +10,7 @@ from routes.auth import router as auth_router
 from routes.leads import router as leads_router
 from routes.usage import router as usage_router
 from routes.email import router as email_router
+from routes.automation import router as automation_router
 from utils.ratelimit import limiter
 from utils.logger import configure_logging
 
@@ -48,6 +49,7 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(leads_router, prefix="/leads", tags=["leads"])
 app.include_router(email_router, prefix="/email", tags=["email"])
 app.include_router(usage_router, prefix="/usage", tags=["usage"])
+app.include_router(automation_router, prefix="/automation", tags=["automation"])
 
 
 # Initialize logging
