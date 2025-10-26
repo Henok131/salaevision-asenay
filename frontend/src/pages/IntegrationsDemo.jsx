@@ -2,12 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 
-const providers = [
-  { key: 'sap', label: 'SAP' },
-  { key: 'hubspot', label: 'HubSpot' },
-  { key: 'slack', label: 'Slack' },
-  { key: 'gmail', label: 'Gmail' },
-]
+const providerList = (import.meta.env.VITE_INTEGRATION_PROVIDERS || '').split(',').map((p) => p.trim()).filter(Boolean)
+const providers = providerList.map((p) => ({ key: p, label: p }))
 
 export function IntegrationsDemo() {
   const { t } = useTranslation()

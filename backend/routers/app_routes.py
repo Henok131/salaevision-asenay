@@ -20,21 +20,33 @@ def _require_env(name: str) -> str:
     return value
 
 
+def _provider_list() -> list[str]:
+    raw = _require_env("INTEGRATION_PROVIDERS")
+    return [p.strip() for p in raw.split(",") if p.strip()]
+
+
+def _provider_enabled(provider: str) -> bool:
+    upper = provider.strip().upper().replace("-", "_")
+    specific = os.getenv(f"ENABLE_{upper}")
+    if specific is not None:
+        return specific.lower() == "true"
+    if upper == "DRIVE":
+        return os.getenv("ENABLE_DRIVE", "false").lower() == "true"
+    return False
+
+
 @router.get("/config")
 async def get_config():
+    providers = _provider_list()
+    toggles = {p: _provider_enabled(p) for p in providers}
     return {
         "site_url": _require_env("SITE_URL"),
         "domain": _require_env("DOMAIN"),
         "from_email": _require_env("FROM_EMAIL"),
         "rate_limit_usage": int(_require_env("RATE_LIMIT_USAGE")),
         "openai_timeout_seconds": int(_require_env("OPENAI_TIMEOUT_SECONDS")),
-        "integrations": {
-            "sap": os.getenv("ENABLE_SAP", "false").lower() == "true",
-            "hubspot": os.getenv("ENABLE_HUBSPOT", "false").lower() == "true",
-            "drive": os.getenv("ENABLE_DRIVE", "false").lower() == "true",
-            "slack": False,
-            "gmail": False,
-        },
+        "providers": providers,
+        "provider_toggles": toggles,
     }
 
 
@@ -147,16 +159,10 @@ async def recommendation(lead_id: str):
 
 @router.get("/integrations/status")
 async def integrations_status(provider: str):
-    flags = {
-        "sap": os.getenv("ENABLE_SAP", "false").lower() == "true",
-        "hubspot": os.getenv("ENABLE_HUBSPOT", "false").lower() == "true",
-        "drive": os.getenv("ENABLE_DRIVE", "false").lower() == "true",
-        "slack": False,
-        "gmail": False,
-    }
-    enabled = flags.get(provider.lower())
-    if enabled is None:
+    providers = _provider_list()
+    if provider not in providers:
         raise HTTPException(status_code=404, detail="Unknown provider")
+    enabled = _provider_enabled(provider)
     status = {
         "provider": provider,
         "enabled": enabled,
