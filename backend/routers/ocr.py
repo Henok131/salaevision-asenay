@@ -6,11 +6,13 @@ from PIL import Image
 import io
 from services.auth import verify_token
 from services.supabase_client import get_supabase_client
+from services.ratelimit import limiter, auth_key
 
 router = APIRouter()
 security = HTTPBearer()
 
 @router.post("/")
+@limiter.limit("5/minute", key_func=auth_key)
 async def ocr_image(
     file: UploadFile = File(...),
     credentials: HTTPAuthorizationCredentials = Depends(security)

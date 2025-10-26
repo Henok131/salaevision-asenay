@@ -7,6 +7,7 @@ from services.supabase_client import get_supabase_client
 from services.auth import verify_token
 import uuid as _uuid
 from backend.models.pydantic_schemas import InviteRequest, AcceptInviteRequest
+from services.ratelimit import limiter, auth_key
 
 router = APIRouter()
 security = HTTPBearer()
@@ -27,6 +28,7 @@ async def create_org(name: str, credentials: HTTPAuthorizationCredentials = Depe
     return {"org_id": org_id, "name": name}
 
 @router.post("/invite")
+@limiter.limit("3/minute", key_func=auth_key)
 async def invite_user_to_org(payload: InviteRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = await verify_token(credentials.credentials)
     if not user:
@@ -40,7 +42,8 @@ async def invite_user_to_org(payload: InviteRequest, credentials: HTTPAuthorizat
     inv = supabase.table("org_invitations").insert({"org_id": payload.org_id, "email": payload.email, "role": payload.role, "token": token}).execute()
     if not inv.data:
         raise HTTPException(status_code=500, detail="Failed to create invitation")
-    # TODO: send email with token link
+    # Audit log
+    print(f"[AUDIT] invite sent by {user['id']} to {payload.email} for org {payload.org_id}")
     return {"success": True, "token": token}
 
 @router.post("/accept_invite")

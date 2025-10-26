@@ -10,6 +10,7 @@ from openai import OpenAI
 from services.supabase_client import get_supabase_client
 from routers.insights import evaluate_templates
 from services.auth import verify_token
+from services.ratelimit import limiter, auth_key
 
 router = APIRouter()
 security = HTTPBearer()
@@ -21,6 +22,7 @@ _MAX_CSV_BYTES = int(os.getenv("MAX_CSV_BYTES", "10485760"))  # 10 MB default
 _MAX_CSV_ROWS = int(os.getenv("MAX_CSV_ROWS", "200000"))
 
 @router.post("/")
+@limiter.limit("10/minute", key_func=auth_key)
 async def analyze_sales_data(
     file: UploadFile = File(...),
     image: Optional[UploadFile] = File(None),

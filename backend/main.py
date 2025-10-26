@@ -14,6 +14,9 @@ from routers import orgs
 from routers import dashboards
 from routers import plugins
 from routers import insights
+from slowapi.errors import RateLimitExceeded
+from fastapi.responses import JSONResponse
+from services.ratelimit import limiter
 from routers import dashboards
 from services.database import init_db
 from services.digest import run_weekly_digest_job
@@ -42,6 +45,12 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Rate limit exception handler
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request, exc):
+    retry = int(getattr(exc, "retry_after", 60))
+    return JSONResponse(status_code=429, content={"error": "Rate limit exceeded", "retry_after": retry})
 
 # CORS middleware
 app.add_middleware(

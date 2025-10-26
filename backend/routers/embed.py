@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from services.supabase_client import get_supabase_client
+from services.ratelimit import limiter, get_remote_address
 
 router = APIRouter()
 
 @router.get("/{public_id}")
+@limiter.limit("20/minute")
 def get_embedded_chart(public_id: str):
     supabase = get_supabase_client()
     resp = (

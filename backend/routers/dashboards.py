@@ -4,6 +4,7 @@ from services.supabase_client import get_supabase_client
 from services.auth import verify_token
 import uuid
 from backend.models.pydantic_schemas import TogglePublicRequest
+from services.ratelimit import limiter, auth_key
 
 router = APIRouter()
 security = HTTPBearer()
@@ -14,6 +15,7 @@ def generate_public_id() -> str:
 
 
 @router.post("/toggle_public")
+@limiter.limit("10/minute", key_func=auth_key)
 async def toggle_public(payload: TogglePublicRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = await verify_token(credentials.credentials)
     if not user:
@@ -61,4 +63,6 @@ async def toggle_public(payload: TogglePublicRequest, credentials: HTTPAuthoriza
     if not upd.data:
         raise HTTPException(status_code=500, detail="Failed to update dashboard")
     d2 = upd.data[0]
+    # Audit log
+    print(f"[AUDIT] toggle_public by {user['id']} dashboard {d2['id']} -> {d2['is_public']}")
     return {"id": d2["id"], "is_public": d2["is_public"], "public_id": d2.get("public_id")}
