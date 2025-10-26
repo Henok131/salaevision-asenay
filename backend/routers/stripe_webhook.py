@@ -5,6 +5,7 @@ import os
 from typing import Dict, Any
 from services.supabase_client import get_supabase_client
 import logging
+import sentry_sdk
 
 router = APIRouter()
 
@@ -58,6 +59,8 @@ async def stripe_webhook(request: Request):
         
     except Exception as e:
         logging.exception("Stripe webhook error")
+        if os.getenv("SENTRY_DSN"):
+            sentry_sdk.capture_exception(e)
         raise HTTPException(status_code=500, detail=f"Webhook processing failed: {str(e)}")
 
 async def handle_subscription_created(subscription: Dict[str, Any]):

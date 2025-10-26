@@ -22,8 +22,14 @@ from routers import dashboards
 from services.database import init_db
 from services.digest import run_weekly_digest_job
 from services.supabase_client import get_supabase_client
+import sentry_sdk
 
 load_dotenv()
+
+# Sentry initialization
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN:
+    sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=0.1)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

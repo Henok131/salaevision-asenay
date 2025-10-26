@@ -1,4 +1,5 @@
 import axios from 'axios'
+import * as Sentry from '@sentry/browser'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -28,6 +29,13 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status
+    const url = error.config?.url || ''
+    if (status >= 500 && (url.includes('/auth') || url.includes('/analyze') || url.includes('/ocr'))) {
+      Sentry.captureException(error, {
+        tags: { area: 'api', status },
+        extra: { url, data: error.response?.data },
+      })
+    }
     if (status === 401) {
       localStorage.removeItem('access_token')
       window.location.href = '/login'
