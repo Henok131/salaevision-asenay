@@ -11,6 +11,7 @@ import { MetricCards } from '../components/MetricCards'
 import { InteractiveCharts } from '../components/InteractiveCharts'
 import AIInsightsPanel from '../components/AIInsightsPanel'
 import ExportButton from '../components/ExportButton'
+import TabNav from '../components/TabNav'
 
 export const Dashboard = () => {
   const { user } = useAuth()
@@ -326,6 +327,13 @@ export const Dashboard = () => {
                   >
                     Your multimodal explainable AI analytics dashboard
                   </motion.p>
+                  <div className="mt-4">
+                    <TabNav
+                      tabs={["dashboard","forecast","sentiment","visual","correlation"]}
+                      activeTab={activeTab}
+                      setActiveTab={setActiveTab}
+                    />
+                  </div>
                 </div>
 
                 {/* KPI Cards */}

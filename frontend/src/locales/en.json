@@ -1,0 +1,10 @@
+{
+  "dashboard": {
+    "welcome": "Welcome to your dashboard"
+  },
+  "common": {
+    "export": "Export",
+    "sign_in": "Sign In",
+    "sign_out": "Sign Out"
+  }
+}

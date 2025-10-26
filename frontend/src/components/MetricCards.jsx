@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import CountUp from 'react-countup'
 import { TrendingUp, Heart, Eye, Target, Zap } from 'lucide-react'
 
 const metricCards = [
@@ -99,7 +100,11 @@ export const MetricCards = ({ onCardClick }) => {
                 transition={{ delay: index * 0.1 + 0.2 }}
                 className="text-2xl font-bold text-text-primary"
               >
-                {metric.value}
+                {typeof metric.value === 'number' ? (
+                  <CountUp end={metric.value} duration={1.2} separator="," />
+                ) : (
+                  metric.value
+                )}
               </motion.div>
               <div className="text-sm text-text-secondary">
                 {metric.title}
