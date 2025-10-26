@@ -34,6 +34,12 @@ class IntegrationClient:
             self.clients['drive'] = { 'service_account_json': os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON') }
             self.status['drive'] = bool(self.clients['drive']['service_account_json'])
         # Add more connectors similarly...
+        for key in ['HUBSPOT', 'SALESFORCE', 'MAILCHIMP', 'SENDINBLUE', 'GMAIL']:
+            if self._enable(key):
+                self.clients[key.lower()] = { 'enabled': True }
+                self.status[key.lower()] = True
+            else:
+                self.status[key.lower()] = False
 
     def connect_tool(self, tool_name: str):
         t = tool_name.lower()

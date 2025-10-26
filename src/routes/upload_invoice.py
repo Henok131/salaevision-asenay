@@ -6,6 +6,7 @@ from typing import Optional
 import io
 from PIL import Image
 import pytesseract
+import os
 
 router = APIRouter()
 
@@ -50,5 +51,11 @@ async def upload_invoice(lead_id: str, file: UploadFile = File(...), user = Depe
         'file_path': path,
         'parsed_json': fields,
     }).execute()
+
+    # Optional: Google Drive upload using service account (path only; client wiring handled externally)
+    if str(os.getenv('ENABLE_DRIVE', 'false')).lower() == 'true':
+        # Placeholder: in production, use Google Drive API client with service account JSON
+        # Here we just log intent; actual upload should be implemented in a Drive service
+        pass
 
     return { 'invoice_id': rec.data[0]['id'] if rec.data else None, 'file_path': path, 'parsed': fields }

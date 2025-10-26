@@ -7,6 +7,7 @@ import Chat from './pages/Chat'
 import Settings from './pages/Settings'
 import SearchResults from './pages/SearchResults'
 import FunnelStats from './pages/FunnelStats'
+import Integrations from './pages/settings/Integrations'
 
 export const routes = [
   { path: '/', element: <Navigate to="/home" replace /> },
@@ -15,6 +16,7 @@ export const routes = [
   { path: '/timeline', element: <Timeline /> },
   { path: '/chat', element: <Chat /> },
   { path: '/settings', element: <Settings /> },
+  { path: '/settings/integrations', element: <Integrations /> },
   { path: '/search', element: <SearchResults /> },
   { path: '/funnel-stats', element: <FunnelStats /> },
 ]

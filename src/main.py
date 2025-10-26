@@ -17,6 +17,7 @@ from routes.search_leads import router as search_router
 from routes.recommendation import router as rec_router
 from routes.upload_invoice import router as invoice_router
 from routes.webhook import router as webhook_router
+from routes.integrations import router as integrations_router
 from utils.ratelimit import limiter
 from utils.logger import configure_logging
 
@@ -62,6 +63,7 @@ app.include_router(search_router, tags=["search"])    # includes /search_leads
 app.include_router(rec_router, tags=["recommendation"]) # includes /recommendation/{lead_id}
 app.include_router(invoice_router, tags=["invoices"])    # includes /upload_invoice/{lead_id}
 app.include_router(webhook_router, tags=["webhook"])     # includes /webhook/event
+app.include_router(integrations_router, tags=["integrations"]) # /integrations/*
 
 
 # Initialize logging

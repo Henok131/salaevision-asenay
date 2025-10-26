@@ -15,6 +15,8 @@ def on_score_updated(lead_id: str, score: int):
   logging.info('[HOOK] Score updated: %s -> %s', lead_id, score)
   if score >= 80:
     integration_client.send_slack(f"Hot lead! Score={score}")
+    # Placeholder CRM sync (e.g., SAP/HubSpot)
+    logging.info('[CRM] Ready to sync lead %s with score %s to CRM', lead_id, score)
 
 
 def on_invoice_uploaded(lead_id: str, file_path: str, parsed: dict):
