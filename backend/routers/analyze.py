@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from logging import getLogger
 import pandas as pd
 import openai
 import os
@@ -14,8 +15,20 @@ from services.auth import verify_token
 router = APIRouter()
 security = HTTPBearer()
 
-# Initialize OpenAI
-openai.api_key = os.getenv("OPENAI_API_KEY")
+logger = getLogger("salesvision")
+
+
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or str(value).strip() == "":
+        raise HTTPException(status_code=500, detail=f"Missing environment: {name}")
+    return value
+
+
+def _init_openai():
+    # Set API key strictly from env; no fallback
+    api_key = _require_env("OPENAI_API_KEY")
+    openai.api_key = api_key
 
 @router.post("/")
 async def analyze_sales_data(
@@ -28,6 +41,7 @@ async def analyze_sales_data(
     Analyze uploaded sales data and return AI-generated insights
     """
     try:
+        logger.info("analyze_sales_data start")
         # Verify user authentication
         user = await verify_token(credentials.credentials)
         if not user:
@@ -73,7 +87,7 @@ async def analyze_sales_data(
         
         result = supabase.table("analysis_results").insert(analysis_result).execute()
         
-        return {
+        resp = {
             "success": True,
             "analysis_id": result.data[0]["id"] if result.data else None,
             "insights": insights,
@@ -85,8 +99,11 @@ async def analyze_sales_data(
                 "date_range": get_date_range(df) if 'date' in df.columns else None
             }
         }
+        logger.info("analyze_sales_data success")
+        return resp
         
     except Exception as e:
+        logger.exception("analyze_sales_data failed")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 async def analyze_text_sentiment(text: str) -> Dict[str, Any]:
@@ -94,6 +111,8 @@ async def analyze_text_sentiment(text: str) -> Dict[str, Any]:
     Analyze text sentiment and tone using OpenAI
     """
     try:
+        _init_openai()
+        timeout_s = int(_require_env("OPENAI_TIMEOUT_SECONDS"))
         response = openai.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
@@ -101,7 +120,8 @@ async def analyze_text_sentiment(text: str) -> Dict[str, Any]:
                 {"role": "user", "content": f"Analyze the tone and sentiment of this marketing text: {text}"}
             ],
             max_tokens=200,
-            temperature=0.7
+            temperature=0.7,
+            request_timeout=timeout_s,
         )
         
         analysis = response.choices[0].message.content
@@ -220,6 +240,8 @@ async def generate_multimodal_insights(df: pd.DataFrame, text_insight: Optional[
         Format your response as JSON with keys: summary, key_factors, recommendations, visual_insight, text_insight
         """
         
+        _init_openai()
+        timeout_s = int(_require_env("OPENAI_TIMEOUT_SECONDS"))
         response = openai.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
@@ -227,7 +249,8 @@ async def generate_multimodal_insights(df: pd.DataFrame, text_insight: Optional[
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1200,
-            temperature=0.7
+            temperature=0.7,
+            request_timeout=timeout_s,
         )
         
         # Parse AI response

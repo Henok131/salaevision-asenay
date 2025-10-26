@@ -9,10 +9,23 @@ services:
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_TIMEOUT_SECONDS=${OPENAI_TIMEOUT_SECONDS}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - FRONTEND_URL=${FRONTEND_URL}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      - SITE_URL=${SITE_URL}
+      - DOMAIN=${DOMAIN}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - STORAGE_INVOICE_BUCKET=${STORAGE_INVOICE_BUCKET}
+      - RATE_LIMIT_USAGE=${RATE_LIMIT_USAGE}
+      - ENABLE_DRIVE=${ENABLE_DRIVE}
+      - GOOGLE_SERVICE_ACCOUNT_JSON=${GOOGLE_SERVICE_ACCOUNT_JSON}
+      - ENABLE_SAP=${ENABLE_SAP}
+      - ENABLE_HUBSPOT=${ENABLE_HUBSPOT}
+      - WEBHOOK_TOKEN=${WEBHOOK_TOKEN}
+      - LOG_FILE=/logs/system.log
     ports:
       - "8000:8000"
     volumes:
@@ -32,8 +45,8 @@ services:
       - "443:443"
     depends_on:
       - backend
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
+    environment:
+      - DOMAIN=${DOMAIN}
     restart: unless-stopped
 
   # Optional: Add a database service if not using Supabase

@@ -6,6 +6,7 @@ import { Pricing } from './pages/Pricing'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { IntegrationsDemo } from './pages/IntegrationsDemo'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
 
@@ -21,6 +22,7 @@ function App() {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/settings/integrations" element={<IntegrationsDemo />} />
               <Route 
                 path="/dashboard" 
                 element={

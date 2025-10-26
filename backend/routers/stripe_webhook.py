@@ -1,15 +1,25 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, HTTPException, Request
+from logging import getLogger
 import stripe
 import os
 from typing import Dict, Any
 from services.supabase_client import get_supabase_client
 
 router = APIRouter()
+logger = getLogger("salesvision")
 
-# Initialize Stripe
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or str(value).strip() == "":
+        raise HTTPException(status_code=500, detail=f"Missing environment: {name}")
+    return value
+
+
+def _init_stripe():
+    api_key = _require_env("STRIPE_SECRET_KEY")
+    stripe.api_key = api_key
+    return _require_env("STRIPE_WEBHOOK_SECRET")
 
 @router.post("/webhook")
 async def stripe_webhook(request: Request):
@@ -17,6 +27,7 @@ async def stripe_webhook(request: Request):
     Handle Stripe webhook events for subscription updates
     """
     try:
+        webhook_secret = _init_stripe()
         payload = await request.body()
         sig_header = request.headers.get('stripe-signature')
         
@@ -45,9 +56,11 @@ async def stripe_webhook(request: Request):
         elif event['type'] == 'invoice.payment_failed':
             await handle_payment_failed(event['data']['object'])
         
+        logger.info(f"stripe_webhook handled type={event['type']}")
         return {"status": "success"}
         
     except Exception as e:
+        logger.exception("stripe_webhook failed")
         raise HTTPException(status_code=500, detail=f"Webhook processing failed: {str(e)}")
 
 async def handle_subscription_created(subscription: Dict[str, Any]):
