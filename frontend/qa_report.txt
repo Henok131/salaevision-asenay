@@ -24,3 +24,9 @@ Starting preview server on http://localhost:5173
 Preview server is up
 Running E2E tests (Playwright)
 ❌ Playwright failed
+Running unit/component tests (Vitest)
+Building frontend for preview
+Starting preview server on http://localhost:5173
+Preview server is up
+Running E2E tests (Playwright)
+❌ Playwright failed

@@ -1,0 +1,119 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "SalesVision XAI-360" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e10]: SalesVision XAI-360
+      - generic [ref=e11]:
+        - link "Dashboard" [ref=e12] [cursor=pointer]:
+          - /url: /
+        - link "Pricing" [ref=e13] [cursor=pointer]:
+          - /url: /pricing
+        - generic [ref=e14]:
+          - link "Sign In" [ref=e15] [cursor=pointer]:
+            - /url: /login
+          - link "Get Started" [ref=e16] [cursor=pointer]:
+            - /url: /signup
+  - main [ref=e17]:
+    - generic [ref=e21]:
+      - banner [ref=e22]:
+        - img "Asenay Tech" [ref=e23]
+        - heading "Sign in to Asenay" [level=1] [ref=e24]
+        - paragraph [ref=e25]: Use your company account to continue
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Email address
+            - generic [ref=e30]:
+              - generic:
+                - img
+              - textbox "Email address" [active] [ref=e31]:
+                - /placeholder: Enter your email
+                - text: user@example.com
+          - generic [ref=e32]:
+            - generic [ref=e33]: Password
+            - generic [ref=e34]:
+              - generic:
+                - img
+              - textbox "Password" [ref=e35]:
+                - /placeholder: Enter your password
+              - button "Show password" [ref=e36] [cursor=pointer]:
+                - img [ref=e37]
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - checkbox "Remember me" [ref=e42]
+              - generic [ref=e43]: Remember me
+            - button "Forgot your password?" [ref=e45] [cursor=pointer]
+          - button "Sign in" [ref=e46] [cursor=pointer]
+        - generic [ref=e47]:
+          - generic [ref=e52]: Or continue with
+          - generic [ref=e53]:
+            - button "Continue with Google" [ref=e54] [cursor=pointer]:
+              - img
+              - text: Google
+            - button "Continue with GitHub" [ref=e59] [cursor=pointer]:
+              - img
+              - text: GitHub
+            - button "Continue with Facebook" [disabled] [ref=e62]:
+              - img
+              - text: Facebook
+      - paragraph [ref=e65]:
+        - text: Don't have an account?
+        - link "Sign up for free" [ref=e66] [cursor=pointer]:
+          - /url: /signup
+  - contentinfo [ref=e67]:
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]:
+            - img [ref=e72]
+            - generic [ref=e74]: SalesVision XAI-360
+          - paragraph [ref=e75]: Transform your sales data into actionable insights with multimodal explainable AI analytics and forecasting.
+          - generic [ref=e76]:
+            - link [ref=e77] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e78]
+            - link [ref=e80] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e81]
+            - link [ref=e85] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e86]
+        - generic [ref=e89]:
+          - heading "Quick Links" [level=3] [ref=e90]
+          - list [ref=e91]:
+            - listitem [ref=e92]:
+              - link "Dashboard" [ref=e93] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e94]:
+              - link "Pricing" [ref=e95] [cursor=pointer]:
+                - /url: /pricing
+            - listitem [ref=e96]:
+              - link "Documentation" [ref=e97] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e98]:
+              - link "API Reference" [ref=e99] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e100]:
+          - heading "Support" [level=3] [ref=e101]
+          - list [ref=e102]:
+            - listitem [ref=e103]:
+              - link "Help Center" [ref=e104] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e105]:
+              - link "Contact Us" [ref=e106] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e107]:
+              - link "Privacy Policy" [ref=e108] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e109]:
+              - link "Terms of Service" [ref=e110] [cursor=pointer]:
+                - /url: "#"
+      - generic [ref=e112]:
+        - paragraph [ref=e113]: © 2024 SalesVision AI. All rights reserved.
+        - paragraph [ref=e114]: Built with ❤️ by Asenay Tech
+```
