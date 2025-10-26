@@ -60,6 +60,8 @@ app.include_router(forecast.router, prefix="/forecast", tags=["forecasting"])
 app.include_router(explain.router, prefix="/explain", tags=["explainability"])
 app.include_router(stripe_webhook.router, prefix="/stripe", tags=["payments"])
 app.include_router(tokens.router, prefix="/tokens", tags=["tokens"])
+# API aliases with /api prefix for compatibility
+app.include_router(tokens.router, prefix="/api/token", tags=["tokens"])
 
 @app.get("/")
 async def root():
