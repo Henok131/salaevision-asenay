@@ -6,6 +6,7 @@ from utils.db_utils import supabase, insert_usage_event
 from utils.openai_utils import score_lead
 from routes.auth import get_current_user, require_role
 from utils.ratelimit import limiter, auth_key
+from utils.slack_utils import send_slack
 
 router = APIRouter()
 
@@ -34,6 +35,11 @@ async def create_lead(payload: LeadCreate, user=Depends(get_current_user)):
     res = sb.table('leads').insert(row).execute()
     if not res.data:
         raise HTTPException(status_code=500, detail='Failed to create lead')
+    # Slack alert
+    try:
+        send_slack(f"New lead created: {payload.name} <{payload.email}>", extra={'user_id': user['id']})
+    except Exception:
+        pass
     return {"id": res.data[0]['id']}
 
 
@@ -77,5 +83,11 @@ async def score_route(payload: ScoreRequest, user=Depends(get_current_user)):
     # Deduct on success and record usage
     sb.table('users').update({'tokens_remaining': remaining - TOKEN_COST_PER_TEXT}).eq('id', user['id']).execute()
     insert_usage_event(user['id'], user.get('org_id'), TOKEN_COST_PER_TEXT, 'score')
+
+    if score == 5 and 'Fallback score' in reason:
+        try:
+            send_slack("AI scoring fallback triggered", level='warning', extra={'lead_id': payload.lead_id})
+        except Exception:
+            pass
 
     return {"score": score, "reason": reason}

@@ -57,6 +57,24 @@ services:
       sleep 12h; \
       done"
 
+  certbot_init:
+    image: certbot/certbot:latest
+    container_name: crm-certbot-init
+    environment:
+      - DOMAIN=${DOMAIN}
+      - EMAIL_FOR_CERTBOT=${EMAIL_FOR_CERTBOT}
+    volumes:
+      - ./certs:/etc/letsencrypt
+      - ./frontend/dist:/usr/share/nginx/html
+    entrypoint: /bin/sh -c
+    command: >
+      "if [ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]; then \
+        certbot certonly --noninteractive --agree-tos --email ${EMAIL_FOR_CERTBOT} \
+          --webroot -w /usr/share/nginx/html -d ${DOMAIN}; \
+      else \
+        echo 'Certs exist for ${DOMAIN}, skipping init'; \
+      fi"
+
 networks:
   web:
     driver: bridge
