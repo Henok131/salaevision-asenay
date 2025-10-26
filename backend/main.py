@@ -1,9 +1,12 @@
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
+import logging
+from logging.handlers import RotatingFileHandler
 
 from routers import analyze, forecast, explain, auth, stripe_webhook
 from services.database import init_db
@@ -26,6 +29,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Logging setup
+logs_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
+os.makedirs(logs_dir, exist_ok=True)
+log_path = os.path.join(logs_dir, 'system.log')
+handler = RotatingFileHandler(log_path, maxBytes=5_000_000, backupCount=3)
+logging.basicConfig(level=logging.INFO, handlers=[handler])
+logger = logging.getLogger("uvicorn.error")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +45,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# GZip compression
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Security
 security = HTTPBearer()

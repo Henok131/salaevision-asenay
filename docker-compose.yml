@@ -33,7 +33,27 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx:/nginx-src
+    environment:
+      - DOMAIN=${DOMAIN}
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: salesvision-frontend
+    environment:
+      - VITE_APP_NAME=${VITE_APP_NAME}
+      - VITE_FRONTEND_URL=${VITE_FRONTEND_URL}
+      - VITE_DEFAULT_LOCALE=${VITE_DEFAULT_LOCALE}
+      - VITE_SUPPORTED_LOCALES=${VITE_SUPPORTED_LOCALES}
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
     restart: unless-stopped
 
   # Optional: Add a database service if not using Supabase
