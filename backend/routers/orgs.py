@@ -6,6 +6,7 @@ import uuid
 from services.supabase_client import get_supabase_client
 from services.auth import verify_token
 import uuid as _uuid
+from backend.models.pydantic_schemas import InviteRequest, AcceptInviteRequest
 
 router = APIRouter()
 security = HTTPBearer()
@@ -26,34 +27,39 @@ async def create_org(name: str, credentials: HTTPAuthorizationCredentials = Depe
     return {"org_id": org_id, "name": name}
 
 @router.post("/invite")
-async def invite_user_to_org(email: str, role: str, org_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def invite_user_to_org(payload: InviteRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = await verify_token(credentials.credentials)
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    if role not in ("admin", "analyst", "viewer"):
-        raise HTTPException(status_code=400, detail="Invalid role")
     supabase = get_supabase_client()
+    # Ensure current user is admin in this org
+    cur = supabase.table("users").select("org_id,role").eq("id", user["id"]).execute()
+    if not cur.data or cur.data[0].get("org_id") != payload.org_id or cur.data[0].get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
     token = str(_uuid.uuid4())
-    inv = supabase.table("org_invitations").insert({"org_id": org_id, "email": email, "role": role, "token": token}).execute()
+    inv = supabase.table("org_invitations").insert({"org_id": payload.org_id, "email": payload.email, "role": payload.role, "token": token}).execute()
     if not inv.data:
         raise HTTPException(status_code=500, detail="Failed to create invitation")
     # TODO: send email with token link
     return {"success": True, "token": token}
 
 @router.post("/accept_invite")
-async def accept_invite(token: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def accept_invite(payload: AcceptInviteRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = await verify_token(credentials.credentials)
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
     supabase = get_supabase_client()
-    inv = supabase.table("org_invitations").select("id,org_id,accepted").eq("token", token).limit(1).execute()
+    inv = supabase.table("org_invitations").select("id,org_id,accepted,email,role").eq("token", payload.token).limit(1).execute()
     if not inv.data:
         raise HTTPException(status_code=400, detail="Invalid token")
     if inv.data[0].get('accepted'):
         raise HTTPException(status_code=400, detail="Token already used")
-    org_id = inv.data[0]['org_id']
-    # Attach user to org as viewer by default; admins can change later
-    supabase.table('users').update({'org_id': org_id}).eq('id', user['id']).execute()
+    # Email match enforcement and role application
+    inv_row = inv.data[0]
+    if (user.get('email') or '').lower() != (inv_row.get('email') or '').lower():
+        raise HTTPException(status_code=403, detail="Invitation does not match current user")
+    org_id = inv_row['org_id']
+    supabase.table('users').update({'org_id': org_id, 'role': inv_row.get('role', 'viewer')}).eq('id', user['id']).execute()
     supabase.table('org_invitations').update({'accepted': True}).eq('id', inv.data[0]['id']).execute()
     return { 'success': True, 'org_id': org_id }
 
@@ -63,6 +69,9 @@ async def get_org_members(org_id: str, credentials: HTTPAuthorizationCredentials
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
     supabase = get_supabase_client()
+    cur = supabase.table("users").select("org_id").eq("id", user['id']).execute()
+    if not cur.data or cur.data[0].get('org_id') != org_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     members = supabase.table("users").select("id,email,role,created_at").eq("org_id", org_id).execute()
     return {"members": members.data or []}
 

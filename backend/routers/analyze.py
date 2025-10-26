@@ -16,6 +16,9 @@ security = HTTPBearer()
 
 # Initialize OpenAI (v1 client)
 _openai_client = OpenAI()
+_OPENAI_TIMEOUT = float(os.getenv("OPENAI_TIMEOUT_SECONDS", "30"))
+_MAX_CSV_BYTES = int(os.getenv("MAX_CSV_BYTES", "10485760"))  # 10 MB default
+_MAX_CSV_ROWS = int(os.getenv("MAX_CSV_ROWS", "200000"))
 
 @router.post("/")
 async def analyze_sales_data(
@@ -39,7 +42,11 @@ async def analyze_sales_data(
         
         # Read CSV data
         contents = await file.read()
+        if len(contents) > _MAX_CSV_BYTES:
+            raise HTTPException(status_code=413, detail="CSV too large")
         df = pd.read_csv(io.StringIO(contents.decode('utf-8')))
+        if len(df) > _MAX_CSV_ROWS:
+            raise HTTPException(status_code=413, detail="CSV has too many rows")
         
         # Basic data validation
         if df.empty:
@@ -280,7 +287,7 @@ async def generate_multimodal_insights(df: pd.DataFrame, text_insight: Optional[
         return insights
         
     except Exception as e:
-        # Fallback analysis if OpenAI fails
+        # Fallback analysis if OpenAI fails (timeout or other error)
         return {
             "summary": f"Analyzed {len(df)} rows of sales data with multimodal context",
             "key_factors": ["Data volume", "Multimodal integration", "Context richness"],

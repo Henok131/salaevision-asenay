@@ -169,6 +169,12 @@ def create_tables_sql():
     );
     CREATE INDEX IF NOT EXISTS idx_insight_templates_org_id ON insight_templates(org_id);
 
+    -- Stripe idempotency events table
+    CREATE TABLE IF NOT EXISTS stripe_events (
+        id TEXT PRIMARY KEY,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+
     -- Ensure columns for older deployments
     ALTER TABLE insight_templates ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
     CREATE INDEX IF NOT EXISTS idx_sales_data_user_id ON sales_data(user_id);

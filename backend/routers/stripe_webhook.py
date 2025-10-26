@@ -4,6 +4,7 @@ import stripe
 import os
 from typing import Dict, Any
 from services.supabase_client import get_supabase_client
+import logging
 
 router = APIRouter()
 
@@ -33,6 +34,9 @@ async def stripe_webhook(request: Request):
         except stripe.error.SignatureVerificationError as e:
             raise HTTPException(status_code=400, detail=f"Invalid signature: {e}")
         
+        # Idempotency: check if event was processed
+        supabase = get_supabase_client()
+        supabase.table('stripe_events').insert({"id": event['id']}).execute()
         # Handle different event types
         if event['type'] == 'customer.subscription.created':
             await handle_subscription_created(event['data']['object'])
@@ -48,6 +52,7 @@ async def stripe_webhook(request: Request):
         return {"status": "success"}
         
     except Exception as e:
+        logging.exception("Stripe webhook error")
         raise HTTPException(status_code=500, detail=f"Webhook processing failed: {str(e)}")
 
 async def handle_subscription_created(subscription: Dict[str, Any]):
