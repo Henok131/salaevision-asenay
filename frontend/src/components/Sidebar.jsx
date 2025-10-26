@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   BarChart3, 
   Brain, 
@@ -13,18 +13,37 @@ import {
   X
 } from 'lucide-react'
 
-const navigationItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-  { id: 'insights', label: 'Insights', icon: Brain },
-  { id: 'forecast', label: 'Forecast', icon: TrendingUp },
-  { id: 'sentiment', label: 'Sentiment', icon: Heart },
-  { id: 'visual', label: 'Visual', icon: Eye },
-  { id: 'correlation', label: 'Correlation', icon: GitBranch },
-  { id: 'reports', label: 'Reports', icon: FileText },
-  { id: 'settings', label: 'Settings', icon: Settings },
-]
+import sidebarConfig from '../config/sidebar.config'
+
+const collapseKey = 'sidebar-collapsed'
+const sectionStateKey = 'sidebar-section-state'
 
 export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
+  const [collapsed, setCollapsed] = useState(false)
+  const [sectionOpen, setSectionOpen] = useState({})
+
+  // load persisted states
+  useEffect(() => {
+    const savedCollapsed = localStorage.getItem(collapseKey)
+    const savedSection = localStorage.getItem(sectionStateKey)
+    if (savedCollapsed != null) setCollapsed(savedCollapsed === 'true')
+    if (savedSection) {
+      try { setSectionOpen(JSON.parse(savedSection)) } catch {}
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(collapseKey, String(collapsed))
+  }, [collapsed])
+
+  useEffect(() => {
+    localStorage.setItem(sectionStateKey, JSON.stringify(sectionOpen))
+  }, [sectionOpen])
+
+  const toggleSection = (id) => {
+    setSectionOpen(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
   return (
     <>
       {/* Mobile overlay */}
@@ -43,7 +62,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         initial={{ x: -280 }}
         animate={{ x: isOpen ? 0 : -280 }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-dark-card/95 backdrop-blur-xl border-r border-dark-border z-40 lg:top-0 lg:h-full lg:z-auto lg:static lg:translate-x-0`}
+        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] ${collapsed ? 'w-20' : 'w-72'} bg-dark-card/95 backdrop-blur-xl border-r border-dark-border z-40 lg:top-0 lg:h-full lg:z-auto lg:static lg:translate-x-0`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-dark-border">
@@ -67,36 +86,76 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
 
         {/* Navigation */}
         <nav className="p-4 space-y-2">
-          {navigationItems.map((item) => {
-            const Icon = item.icon
-            const isActive = activeTab === item.id
-            
+          <div className="flex items-center justify-between mb-2">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-2 rounded-lg hover:bg-dark-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70"
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              <Menu className="h-5 w-5 text-text-secondary" />
+            </button>
+          </div>
+
+          {sidebarConfig.map((section) => {
+            const SectionIcon = section.icon
+            const open = sectionOpen[section.id] ?? true
             return (
-              <motion.button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id)
-                  setIsOpen(false)
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-glass border border-accent-from/30 text-text-primary shadow-neon-blue'
-                    : 'text-text-secondary hover:bg-dark-hover hover:text-text-primary'
-                }`}
-              >
-                <Icon className={`h-5 w-5 ${isActive ? 'text-accent-from' : ''}`} />
-                <span className="font-medium">{item.label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="ml-auto w-2 h-2 bg-accent-from rounded-full"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.button>
+              <div key={section.id} className="mb-2">
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-dark-hover text-text-secondary hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70"
+                  aria-expanded={open}
+                  aria-controls={`section-${section.id}`}
+                >
+                  <SectionIcon className="h-5 w-5 flex-shrink-0" />
+                  {!collapsed && <span className="font-semibold text-left">{section.label}</span>}
+                </button>
+                <AnimatePresence initial={false}>
+                  {open && (
+                    <motion.div
+                      id={`section-${section.id}`}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ type: 'tween', duration: 0.2 }}
+                      className="pl-2 mt-1"
+                    >
+                      {section.items.map((item) => {
+                        const Icon = item.icon
+                        const isActive = activeTab === item.id
+                        return (
+                          <motion.button
+                            key={item.id}
+                            onClick={() => {
+                              setActiveTab(item.id)
+                              setIsOpen(false)
+                            }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${
+                              isActive
+                                ? 'bg-gradient-glass border border-accent-from/30 text-text-primary shadow-neon-blue'
+                                : 'text-text-secondary hover:bg-dark-hover hover:text-text-primary'
+                            }`}
+                            title={collapsed ? item.label : undefined}
+                          >
+                            <Icon className={`h-5 w-5 ${isActive ? 'text-accent-from' : ''}`} />
+                            {!collapsed && <span className="font-medium text-left truncate">{item.label}</span>}
+                            {isActive && !collapsed && (
+                              <motion.div
+                                layoutId="activeTab"
+                                className="ml-auto w-2 h-2 bg-accent-from rounded-full"
+                                initial={false}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                              />
+                            )}
+                          </motion.button>
+                        )
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )
           })}
         </nav>

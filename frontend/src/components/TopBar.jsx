@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Bell, User, Crown, Zap, Brain, Download } from 'lucide-react'
-import LanguageToggle from './LanguageToggle'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiInsightsOpen = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -127,8 +127,8 @@ export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiIn
             />
           </motion.button>
 
-          {/* Language Toggle */}
-          <LanguageToggle />
+          {/* Language Switcher */}
+          <LanguageSwitcher />
 
           {/* User Avatar */}
           <motion.div
