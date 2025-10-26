@@ -59,6 +59,25 @@ export const AuthProvider = ({ children }) => {
     return { data, error }
   }
 
+  const signInWithOAuth = async (provider) => {
+    return await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${import.meta.env.VITE_FRONTEND_URL}/reset-password`,
+      },
+    })
+  }
+
+  const resetPassword = async (email) => {
+    return await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${import.meta.env.VITE_FRONTEND_URL}/reset-password`,
+    })
+  }
+
+  const updatePassword = async (newPassword) => {
+    return await supabase.auth.updateUser({ password: newPassword })
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     return { error }
@@ -69,6 +88,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     signUp,
     signIn,
+    signInWithOAuth,
+    resetPassword,
+    updatePassword,
     signOut,
   }
 

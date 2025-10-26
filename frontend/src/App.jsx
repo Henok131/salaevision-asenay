@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Pricing } from './pages/Pricing'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
+import ResetPassword from './pages/ResetPassword'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
@@ -21,6 +22,7 @@ function App() {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route 
                 path="/dashboard" 
                 element={

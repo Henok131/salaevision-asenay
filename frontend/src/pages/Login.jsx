@@ -12,7 +12,7 @@ export const Login = () => {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, signInWithOAuth, resetPassword } = useAuth()
   const navigate = useNavigate()
   const [phone, setPhone] = useState('')
   const [otpRequested, setOtpRequested] = useState(false)
@@ -38,10 +38,12 @@ export const Login = () => {
 
   const handleGoogleLogin = async () => {
     toast.loading(t('auth.redirecting', 'Redirecting to Google...'), { id: 'oauth' })
+    await signInWithOAuth('google')
   }
 
   const handleGithubLogin = async () => {
     toast.loading(t('auth.redirecting', 'Redirecting to GitHub...'), { id: 'oauth' })
+    await signInWithOAuth('github')
   }
 
   const handleRequestOtp = async (e) => {
@@ -139,9 +141,21 @@ export const Login = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="text-accent-from hover:text-accent-to transition-colors">
-                  Forgot your password?
-                </a>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!email) {
+                  toast.error(t('auth.enter_email_reset', 'Enter your email to reset password'))
+                  return
+                }
+                const { error } = await resetPassword(email)
+                if (error) toast.error(error.message)
+                else toast.success(t('auth.reset_sent', 'Password reset email sent'))
+              }}
+              className="text-accent-from hover:text-accent-to transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70 rounded"
+            >
+              {t('auth.forgot_password', 'Forgot your password?')}
+            </button>
               </div>
             </div>
 
@@ -201,34 +215,7 @@ export const Login = () => {
             </div>
           </div>
 
-          {/* Phone login (OTP) */}
-          <div className="mt-8">
-            <form onSubmit={handleRequestOtp} className="space-y-3">
-              <label htmlFor="phone" className="block text-sm font-medium text-white">{t('auth.phone_number', 'Phone number')}</label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-from focus:border-transparent"
-                    placeholder={t('auth.enter_phone', 'Enter phone number')}
-                  />
-                </div>
-                <button type="submit" className="btn-primary px-4 rounded-lg flex items-center">
-                  {t('auth.send_code', 'Send code')} <ArrowRight className="h-4 w-4 ml-1" />
-                </button>
-              </div>
-              {otpRequested && (
-                <p className="text-xs text-text-muted">{t('auth.otp_info', 'Enter the OTP sent to your phone in the next step.')}</p>
-              )}
-            </form>
-          </div>
+          {/* Phone login (OTP) intentionally removed per requirements */}
 
           <div className="mt-6 text-center">
             <p className="text-gray-300">
