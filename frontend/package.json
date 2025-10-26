@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "env:check": "node -r dotenv/config scripts/env-check.js",
+    "dev": "npm run env:check && vite",
+    "build": "npm run env:check && vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -23,7 +24,8 @@
     "framer-motion": "^10.16.16",
     "react-countup": "^6.5.3",
     "i18next": "^23.11.5",
-    "react-i18next": "^13.5.0"
+    "react-i18next": "^13.5.0",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
