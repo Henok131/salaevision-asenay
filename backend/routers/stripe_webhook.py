@@ -36,7 +36,12 @@ async def stripe_webhook(request: Request):
         
         # Idempotency: check if event was processed
         supabase = get_supabase_client()
-        supabase.table('stripe_events').insert({"id": event['id']}).execute()
+        # Upsert event (prevent duplicates)
+        try:
+            supabase.table('stripe_events').insert({"id": event['id']}).execute()
+        except Exception:
+            # Already processed; ignore
+            return {"status": "ignored"}
         # Handle different event types
         if event['type'] == 'customer.subscription.created':
             await handle_subscription_created(event['data']['object'])

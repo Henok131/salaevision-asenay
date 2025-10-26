@@ -14,6 +14,7 @@ from routers import orgs
 from routers import dashboards
 from routers import plugins
 from routers import insights
+from routers import usage
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
 from services.ratelimit import limiter
@@ -80,6 +81,7 @@ app.include_router(orgs.router, prefix="/orgs", tags=["organizations"])
 app.include_router(dashboards.router, prefix="/dashboards", tags=["dashboards"])
 app.include_router(plugins.router, prefix="/plugins", tags=["plugins"])
 app.include_router(insights.router, prefix="/insights", tags=["insights"])
+app.include_router(usage.router, prefix="/usage", tags=["usage"])
 app.include_router(dashboards.router, prefix="/dashboards", tags=["dashboards"])
 
 @app.get("/")

@@ -113,6 +113,13 @@ async def analyze_sales_data(
         if tokens_used > 0:
             new_remaining = max(0, int(remaining) - int(tokens_used))
             supabase.table("users").update({"tokens_remaining": new_remaining}).eq("id", user["id"]).execute()
+            # Usage event
+            supabase.table('usage_events').insert({
+                'user_id': user['id'],
+                'org_id': user.get('org_id'),
+                'feature': 'analyze',
+                'tokens_used': int(tokens_used),
+            }).execute()
         
         return {
             "success": True,
@@ -360,6 +367,7 @@ def get_date_range(df: pd.DataFrame) -> Dict[str, str]:
 
 
 @router.get("/history/")
+@limiter.limit("20/minute", key_func=auth_key)
 async def get_analysis_history(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     limit: int = 20,

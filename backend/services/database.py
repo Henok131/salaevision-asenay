@@ -175,6 +175,18 @@ def create_tables_sql():
         created_at TIMESTAMP DEFAULT NOW()
     );
 
+    -- Token usage events for analytics and billing visibility
+    CREATE TABLE IF NOT EXISTS usage_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        org_id UUID REFERENCES orgs(id) ON DELETE SET NULL,
+        feature TEXT NOT NULL, -- e.g., analyze, ocr
+        tokens_used INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_usage_events_user_id ON usage_events(user_id);
+    CREATE INDEX IF NOT EXISTS idx_usage_events_org_id ON usage_events(org_id);
+
     -- Ensure columns for older deployments
     ALTER TABLE insight_templates ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
     CREATE INDEX IF NOT EXISTS idx_sales_data_user_id ON sales_data(user_id);

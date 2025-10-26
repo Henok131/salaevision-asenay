@@ -39,6 +39,13 @@ async def ocr_image(
 
         # Deduct only on success
         supabase.table('users').update({'tokens_remaining': remaining - 1}).eq('id', user['id']).execute()
+        # Usage event
+        supabase.table('usage_events').insert({
+            'user_id': user['id'],
+            'org_id': user.get('org_id'),
+            'feature': 'ocr',
+            'tokens_used': 1,
+        }).execute()
         return {"text": text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR failed: {str(e)}")

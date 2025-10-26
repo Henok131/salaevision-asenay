@@ -27,9 +27,18 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    if (status === 401) {
       localStorage.removeItem('access_token')
       window.location.href = '/login'
+    } else if (status === 402) {
+      // Token exhausted – emit a custom event for modal handling
+      const evt = new CustomEvent('billing:upgrade_required', { detail: { reason: 'tokens_exhausted' } })
+      window.dispatchEvent(evt)
+    } else if (status === 429) {
+      const retryAfter = error.response?.data?.retry_after ?? 60
+      const evt = new CustomEvent('rate:limited', { detail: { retryAfter } })
+      window.dispatchEvent(evt)
     }
     return Promise.reject(error)
   }

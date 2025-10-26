@@ -34,6 +34,8 @@ export const Dashboard = () => {
   const [tokensLeft, setTokensLeft] = useState(null)
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(true)
   const [weeklyDigestMode, setWeeklyDigestMode] = useState('both')
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+  const [rateLimitMsg, setRateLimitMsg] = useState(null)
   const [dashboardPublic, setDashboardPublic] = useState(false)
   const [dashboardPublicId, setDashboardPublicId] = useState(null)
 
@@ -193,6 +195,18 @@ export const Dashboard = () => {
       }
     }
     fetchTokens()
+  }, [])
+
+  // Global 402/429 handlers
+  useEffect(() => {
+    const onUpgrade = () => setUpgradeModalOpen(true)
+    const onRate = (e) => setRateLimitMsg(`You're sending too many requests. Please wait ${e.detail?.retryAfter ?? 60} seconds.`)
+    window.addEventListener('billing:upgrade_required', onUpgrade)
+    window.addEventListener('rate:limited', onRate)
+    return () => {
+      window.removeEventListener('billing:upgrade_required', onUpgrade)
+      window.removeEventListener('rate:limited', onRate)
+    }
   }, [])
 
   const updateWeeklyDigest = async (enabled, mode) => {
@@ -361,6 +375,18 @@ export const Dashboard = () => {
               <span>Tokens Left:</span>
               <span className="font-semibold">{tokensLeft}</span>
               {tokensLeft < 10 && <span className="ml-1">(Low)</span>}
+              <button
+                className="ml-3 px-2 py-0.5 border border-dark-border rounded text-text-secondary hover:text-text-primary"
+                onClick={async () => {
+                  try {
+                    const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/me`, { headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` } })
+                    const json = await resp.json()
+                    setTokensLeft(json?.user?.tokens_remaining ?? null)
+                  } catch {}
+                }}
+              >
+                Refresh
+              </button>
             </div>
           </div>
         )}
@@ -575,6 +601,27 @@ export const Dashboard = () => {
             />
           </motion.div>
         </main>
+        {/* Upgrade Modal */}
+        {upgradeModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-dark-card border border-dark-border rounded-xl p-6 w-96">
+              <h3 className="text-lg text-text-primary mb-2">Upgrade to continue</h3>
+              <p className="text-sm text-text-secondary mb-4">You’ve run out of tokens. Upgrade your plan to keep analyzing.</p>
+              <div className="flex justify-end space-x-2">
+                <button className="px-3 py-2 text-text-secondary" onClick={() => setUpgradeModalOpen(false)}>Close</button>
+                <a className="px-3 py-2 bg-gradient-accent text-white rounded" href="/pricing">Go to Pricing</a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rate Limit Notice */}
+        {rateLimitMsg && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-dark-card border border-dark-border rounded px-4 py-2 text-sm text-text-primary z-50">
+            {rateLimitMsg}
+            <button className="ml-2 text-text-secondary" onClick={() => setRateLimitMsg(null)}>Dismiss</button>
+          </div>
+        )}
       </div>
     </div>
   )
