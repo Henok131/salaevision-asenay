@@ -1,16 +1,21 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, Mail, Lock, BarChart3 } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, BarChart3, Github, Phone, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
+import asenayLogo from '../assets/asenay-logo.svg'
 
 export const Login = () => {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
+  const [phone, setPhone] = useState('')
+  const [otpRequested, setOtpRequested] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -21,14 +26,32 @@ export const Login = () => {
       if (error) {
         toast.error(error.message)
       } else {
-        toast.success('Welcome back!')
+        toast.success(t('auth.welcome_back', 'Welcome back!'))
         navigate('/dashboard')
       }
     } catch (error) {
-      toast.error('Login failed. Please try again.')
+      toast.error(t('auth.login_failed', 'Login failed. Please try again.'))
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoogleLogin = async () => {
+    toast.loading(t('auth.redirecting', 'Redirecting to Google...'), { id: 'oauth' })
+  }
+
+  const handleGithubLogin = async () => {
+    toast.loading(t('auth.redirecting', 'Redirecting to GitHub...'), { id: 'oauth' })
+  }
+
+  const handleRequestOtp = async (e) => {
+    e.preventDefault()
+    if (!phone) {
+      toast.error(t('auth.enter_phone', 'Please enter your phone number'))
+      return
+    }
+    setOtpRequested(true)
+    toast.success(t('auth.otp_sent', 'OTP sent to your phone'))
   }
 
   return (
@@ -36,14 +59,11 @@ export const Login = () => {
       <div className="pt-16">
         <div className="max-w-screen-2xl 2xl:max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8 flex items-center justify-center">
       <div className="max-w-md w-full">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <BarChart3 className="h-10 w-10 text-accent-from" />
-            <span className="text-2xl font-bold text-gradient">SalesVision XAI-360</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-white">Welcome back</h2>
-          <p className="text-gray-300 text-sm md:text-base leading-relaxed mt-2">Sign in to your account</p>
+        {/* Centered logo + heading */}
+        <div className="text-center mb-8" role="banner">
+          <img src={asenayLogo} alt="Asenay Tech" className="h-12 w-12 mx-auto mb-3" />
+          <h1 className="text-3xl md:text-4xl font-bold text-white">{t('auth.sign_in_to', 'Sign in to Asenay')}</h1>
+          <p className="text-gray-300 text-sm md:text-base leading-relaxed mt-2">{t('auth.use_company_account', 'Use your company account to continue')}</p>
         </div>
 
         {/* Login Form */}
@@ -148,8 +168,8 @@ export const Login = () => {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button className="w-full glass-button-secondary flex items-center justify-center">
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              <button onClick={handleGoogleLogin} className="w-full glass-button-secondary flex items-center justify-center" aria-label="Continue with Google">
                 <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -170,20 +190,51 @@ export const Login = () => {
                 </svg>
                 Google
               </button>
-              <button className="w-full glass-button-secondary flex items-center justify-center">
-                <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-                </svg>
-                Twitter
+              <button onClick={handleGithubLogin} className="w-full glass-button-secondary flex items-center justify-center" aria-label="Continue with GitHub">
+                <Github className="h-5 w-5 mr-2" />
+                GitHub
+              </button>
+              <button disabled className="w-full glass-button-secondary opacity-60 cursor-not-allowed flex items-center justify-center" aria-label="Continue with Facebook">
+                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.84 3.44 8.86 7.93 9.8v-6.93H7.9v-2.87h2.03V9.41c0-2 1.2-3.1 3.03-3.1.88 0 1.8.16 1.8.16v1.98h-1.02c-1 0-1.31.62-1.31 1.26v1.51h2.23l-.36 2.87h-1.87V21.8C18.56 20.86 22 16.84 22 12c0-5.52-4.48-10-10-10z"/></svg>
+                Facebook
               </button>
             </div>
           </div>
 
+          {/* Phone login (OTP) */}
+          <div className="mt-8">
+            <form onSubmit={handleRequestOtp} className="space-y-3">
+              <label htmlFor="phone" className="block text-sm font-medium text-white">{t('auth.phone_number', 'Phone number')}</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-from focus:border-transparent"
+                    placeholder={t('auth.enter_phone', 'Enter phone number')}
+                  />
+                </div>
+                <button type="submit" className="btn-primary px-4 rounded-lg flex items-center">
+                  {t('auth.send_code', 'Send code')} <ArrowRight className="h-4 w-4 ml-1" />
+                </button>
+              </div>
+              {otpRequested && (
+                <p className="text-xs text-text-muted">{t('auth.otp_info', 'Enter the OTP sent to your phone in the next step.')}</p>
+              )}
+            </form>
+          </div>
+
           <div className="mt-6 text-center">
             <p className="text-gray-300">
-              Don't have an account?{' '}
+              {t('auth.no_account', "Don't have an account?")} {' '}
               <Link to="/signup" className="text-accent-from hover:text-accent-to transition-colors">
-                Sign up for free
+                {t('auth.sign_up_free', 'Sign up for free')}
               </Link>
             </p>
           </div>
