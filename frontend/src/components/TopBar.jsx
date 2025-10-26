@@ -70,7 +70,7 @@ export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiIn
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onToggleAIInsights}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70 ${
               aiInsightsOpen 
                 ? 'bg-gradient-accent text-white shadow-neon-blue' 
                 : 'bg-dark-hover text-text-secondary hover:text-text-primary'
@@ -94,7 +94,7 @@ export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiIn
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onExport}
-            className="flex items-center space-x-2 px-3 py-2 bg-dark-hover text-text-secondary hover:text-text-primary rounded-lg transition-colors"
+            className="flex items-center space-x-2 px-3 py-2 bg-dark-hover text-text-secondary hover:text-text-primary rounded-lg transition-colors min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70"
           >
             <Download className="h-4 w-4" />
             <span className="text-sm font-medium">Export</span>
@@ -115,7 +115,8 @@ export const TopBar = ({ user, plan = 'Free', onToggleAIInsights, onExport, aiIn
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative p-2 hover:bg-dark-hover rounded-lg transition-colors"
+            className="relative p-2 hover:bg-dark-hover rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70"
+            aria-label="Notifications"
           >
             <Bell className="h-5 w-5 text-text-secondary hover:text-text-primary" />
             <motion.div

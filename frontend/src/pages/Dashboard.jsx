@@ -5,6 +5,7 @@ import { Upload, BarChart3, TrendingUp, Brain, FileText, Download, Image, Type, 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import toast from 'react-hot-toast'
 import { Sidebar } from '../components/Sidebar'
+import PageShell from '../components/PageShell'
 import { TopBar } from '../components/TopBar'
 import { MetricCards } from '../components/MetricCards'
 import { InteractiveCharts } from '../components/InteractiveCharts'
@@ -287,16 +288,18 @@ export const Dashboard = () => {
           aiInsightsOpen={aiInsightsOpen}
         />
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button (inside content flow) */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-lg"
+          className="md:hidden sticky top-20 ml-4 z-40 p-2 bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70"
+          aria-label="Open sidebar"
         >
           <Menu className="h-5 w-5 text-text-primary" />
         </button>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 lg:p-8 overflow-auto">
+        <main className="flex-1 overflow-auto">
+          <PageShell>
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
               <motion.div
@@ -393,6 +396,7 @@ export const Dashboard = () => {
               user={user}
             />
           </motion.div>
+          </PageShell>
         </main>
       </div>
     </div>

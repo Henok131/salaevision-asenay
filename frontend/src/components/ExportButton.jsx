@@ -97,16 +97,17 @@ Powered by Asenay Tech
       whileTap={{ scale: 0.95 }}
       onClick={exportToPDF}
       disabled={isExporting}
-      className="flex items-center space-x-2 px-4 py-2 bg-gradient-accent text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-neon-blue transition-all duration-300"
+      className="flex items-center space-x-2 px-4 py-2 bg-gradient-accent text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-neon-blue transition-all duration-300 min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70 w-full sm:w-auto"
+      aria-label="Export insights"
     >
       {isExporting ? (
         <>
-          <Loader className="h-4 w-4 animate-spin" />
+          <Loader className="h-5 w-5 animate-spin" />
           <span>Exporting...</span>
         </>
       ) : (
         <>
-          <Download className="h-4 w-4" />
+          <Download className="h-5 w-5" />
           <span>Export Insights</span>
         </>
       )}

@@ -61,7 +61,9 @@ export const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-dark-bg">
+      <div className="pt-16">
+        <div className="max-w-screen-2xl 2xl:max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8 flex items-center justify-center">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -69,12 +71,12 @@ export const Signup = () => {
             <BarChart3 className="h-10 w-10 text-accent-from" />
             <span className="text-2xl font-bold text-gradient">SalesVision XAI-360</span>
           </div>
-          <h2 className="text-3xl font-bold text-white">Create your account</h2>
-          <p className="text-gray-300 mt-2">Start your free trial today</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-white">Create your account</h2>
+          <p className="text-gray-300 text-sm md:text-base leading-relaxed mt-2">Start your free trial today</p>
         </div>
 
         {/* Signup Form */}
-        <div className="glass-card p-8">
+        <div className="glass-card">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-white mb-2">
@@ -142,7 +144,8 @@ export const Signup = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70 rounded-md"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400 hover:text-white" />
@@ -175,7 +178,8 @@ export const Signup = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70 rounded-md"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400 hover:text-white" />
@@ -210,7 +214,7 @@ export const Signup = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full glass-button flex items-center justify-center"
+              className="w-full glass-button btn-primary flex items-center justify-center"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -288,6 +292,7 @@ export const Signup = () => {
             <h3 className="text-white font-semibold mb-1">Real-time</h3>
             <p className="text-gray-300 text-sm">Get results in seconds</p>
           </div>
+      </div>
         </div>
       </div>
     </div>

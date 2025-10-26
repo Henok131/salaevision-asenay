@@ -126,7 +126,7 @@ const AIInsightsPanel = ({ isOpen, onClose, currentInsight, chartType }) => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 400, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-96 bg-dark-card/95 backdrop-blur-xl border-l border-dark-border z-50 flex flex-col"
+            className="fixed right-0 top-16 lg:top-0 h-[calc(100vh-4rem)] lg:h-full w-96 bg-dark-card/95 backdrop-blur-xl border-l border-dark-border z-50 flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-dark-border">

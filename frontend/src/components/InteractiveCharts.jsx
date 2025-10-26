@@ -142,7 +142,7 @@ export const InteractiveCharts = ({ activeTab, filteredData, onDataHover, showAn
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6 relative"
+      className="chart-container p-4 md:p-6 lg:p-8 min-h-[260px] md:min-h-[320px] relative"
     >
       {/* Insight Narration */}
       <InsightNarration 
@@ -150,10 +150,10 @@ export const InteractiveCharts = ({ activeTab, filteredData, onDataHover, showAn
         data={hoveredData || { trend: 'positive', accuracy: 91 }}
       />
 
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <TrendingUp className="h-6 w-6 text-accent-from" />
-          <h3 className="text-lg font-semibold text-text-primary">Sales Performance</h3>
+      <div className="flex items-center justify-between mb-6 min-w-0">
+        <div className="flex items-center space-x-3 min-w-0">
+          <TrendingUp className="h-6 w-6 text-accent-from flex-shrink-0" />
+          <h3 className="text-lg font-semibold text-text-primary truncate">Sales Performance</h3>
         </div>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -170,7 +170,7 @@ export const InteractiveCharts = ({ activeTab, filteredData, onDataHover, showAn
       </div>
       
       <div className="relative">
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={280}>
           <LineChart 
             data={timeSeriesData}
             onMouseMove={(data) => handleDataHover(data.activePayload?.[0]?.payload)}
@@ -217,7 +217,7 @@ export const InteractiveCharts = ({ activeTab, filteredData, onDataHover, showAn
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6 relative"
+      className="chart-container p-4 md:p-6 lg:p-8 min-h-[260px] md:min-h-[320px] relative"
     >
       {/* Insight Narration */}
       <InsightNarration 
@@ -225,13 +225,13 @@ export const InteractiveCharts = ({ activeTab, filteredData, onDataHover, showAn
         data={hoveredData || { sentiment: 0.78 }}
       />
 
-      <div className="flex items-center space-x-3 mb-6">
-        <Activity className="h-6 w-6 text-accent-from" />
-        <h3 className="text-lg font-semibold text-text-primary">Sentiment Timeline</h3>
+      <div className="flex items-center space-x-3 mb-6 min-w-0">
+        <Activity className="h-6 w-6 text-accent-from flex-shrink-0" />
+        <h3 className="text-lg font-semibold text-text-primary truncate">Sentiment Timeline</h3>
       </div>
       
       <div className="relative">
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={280}>
           <AreaChart 
             data={timeSeriesData}
             onMouseMove={(data) => handleDataHover(data.activePayload?.[0]?.payload)}
@@ -275,14 +275,14 @@ export const InteractiveCharts = ({ activeTab, filteredData, onDataHover, showAn
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6"
+      className="chart-container p-4 md:p-6 lg:p-8 min-h-[260px] md:min-h-[320px]"
     >
-      <div className="flex items-center space-x-3 mb-6">
-        <BarChart3 className="h-6 w-6 text-accent-from" />
-        <h3 className="text-lg font-semibold text-text-primary">Brightness vs Sales</h3>
+      <div className="flex items-center space-x-3 mb-6 min-w-0">
+        <BarChart3 className="h-6 w-6 text-accent-from flex-shrink-0" />
+        <h3 className="text-lg font-semibold text-text-primary truncate">Brightness vs Sales</h3>
       </div>
       
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={280}>
         <ScatterChart data={scatterData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
           <XAxis 

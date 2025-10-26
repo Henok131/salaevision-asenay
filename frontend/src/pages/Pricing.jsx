@@ -83,14 +83,15 @@ export const Pricing = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-dark-bg">
+      <div className="pt-16">
+        <div className="max-w-screen-2xl 2xl:max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-white mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-xl text-gray-300 mb-8">
+          <p className="text-sm md:text-base leading-relaxed text-gray-300 mb-8">
             Start with our free plan and upgrade as you grow
           </p>
           
@@ -125,7 +126,7 @@ export const Pricing = () => {
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`glass-card p-8 relative ${
+              className={`glass-card relative ${
                 plan.popular ? 'ring-2 ring-accent-from' : ''
               }`}
             >
@@ -158,7 +159,7 @@ export const Pricing = () => {
 
               <button
                 onClick={() => handlePlanSelect(plan)}
-                className={`w-full ${plan.buttonStyle} mb-6`}
+                className={`w-full sm:w-auto ${plan.buttonStyle} mb-6 btn-primary`}
               >
                 {plan.buttonText}
               </button>
@@ -191,8 +192,8 @@ export const Pricing = () => {
         </div>
 
         {/* FAQ Section */}
-        <div className="glass-card p-8">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center">
+        <div className="glass-card">
+          <h2 className="text-2xl md:text-3xl font-semibold text-white mb-8 text-center">
             Frequently Asked Questions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -200,7 +201,7 @@ export const Pricing = () => {
               <h3 className="text-lg font-semibold text-white mb-2">
                 What data formats do you support?
               </h3>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm md:text-base leading-relaxed">
                 We support CSV files and Google Sheets integration. More formats coming soon.
               </p>
             </div>
@@ -208,7 +209,7 @@ export const Pricing = () => {
               <h3 className="text-lg font-semibold text-white mb-2">
                 How accurate are the forecasts?
               </h3>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm md:text-base leading-relaxed">
                 Our AI models achieve 85-95% accuracy depending on data quality and historical patterns.
               </p>
             </div>
@@ -216,7 +217,7 @@ export const Pricing = () => {
               <h3 className="text-lg font-semibold text-white mb-2">
                 Can I cancel anytime?
               </h3>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm md:text-base leading-relaxed">
                 Yes, you can cancel your subscription at any time. No long-term contracts.
               </p>
             </div>
@@ -224,7 +225,7 @@ export const Pricing = () => {
               <h3 className="text-lg font-semibold text-white mb-2">
                 Is my data secure?
               </h3>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm md:text-base leading-relaxed">
                 Absolutely. We use enterprise-grade security and never share your data with third parties.
               </p>
             </div>
@@ -233,18 +234,19 @@ export const Pricing = () => {
 
         {/* Enterprise CTA */}
         <div className="text-center mt-16">
-          <div className="glass-card p-8 max-w-2xl mx-auto">
-            <Zap className="h-12 w-12 text-accent-from mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-4">
+          <div className="glass-card max-w-2xl mx-auto">
+            <Zap className="h-8 w-8 md:h-12 md:w-12 text-accent-from mx-auto mb-4" />
+            <h3 className="text-2xl md:text-3xl font-semibold text-white mb-4">
               Need a Custom Solution?
             </h3>
-            <p className="text-gray-300 mb-6">
+            <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-6">
               We offer custom enterprise solutions with dedicated support, custom integrations, and advanced features.
             </p>
-            <button className="glass-button">
+            <button className="glass-button btn-primary w-full sm:w-auto">
               Contact Enterprise Sales
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>

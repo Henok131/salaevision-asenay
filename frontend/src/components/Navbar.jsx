@@ -15,7 +15,7 @@ export const Navbar = () => {
 
   return (
     <nav className="glass-card border-b border-white/20 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl 2xl:max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
@@ -38,11 +38,11 @@ export const Navbar = () => {
                   <User className="h-5 w-5" />
                   <span className="text-white">{user.email}</span>
                 </div>
-                <button
+            <button
                   onClick={handleSignOut}
-                  className="glass-button-secondary flex items-center space-x-2"
+              className="glass-button-secondary flex items-center space-x-2 btn-primary w-full sm:w-auto"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-5 w-5" />
                   <span>Sign Out</span>
                 </button>
               </div>
@@ -62,9 +62,10 @@ export const Navbar = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white hover:text-accent-from transition-colors"
+              className="text-white hover:text-accent-from transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70 rounded-md"
+              aria-label={isOpen ? 'Close menu' : 'Open menu'}
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>

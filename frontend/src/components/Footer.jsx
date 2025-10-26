@@ -4,7 +4,7 @@ import { BarChart3, Mail, Twitter, Linkedin } from 'lucide-react'
 export const Footer = () => {
   return (
     <footer className="glass-card border-t border-white/20 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-screen-2xl 2xl:max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-2">

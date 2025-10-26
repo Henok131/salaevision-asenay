@@ -70,7 +70,7 @@ export const MetricCards = ({ onCardClick }) => {
             
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 rounded-lg bg-${metric.color}/20`}>
+            <div className={`p-2 rounded-lg bg-${metric.color}/20`}>
                 <Icon className={`h-5 w-5 text-${metric.color}`} />
               </div>
               <motion.div

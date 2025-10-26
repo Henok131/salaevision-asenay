@@ -57,7 +57,7 @@ const InsightNarration = ({ chartType, data }) => {
       <div className="bg-gradient-glass border border-dark-border rounded-xl p-4">
         <div className="flex items-start space-x-3">
           <div className="w-8 h-8 bg-gradient-accent rounded-lg flex items-center justify-center flex-shrink-0">
-            <Icon className="h-4 w-4 text-white" />
+            <Icon className="h-5 w-5 text-white" />
           </div>
           
           <div className="flex-1">
@@ -72,7 +72,7 @@ const InsightNarration = ({ chartType, data }) => {
               />
             </div>
             
-            <p className="text-sm text-text-secondary leading-relaxed">
+            <p className="text-sm md:text-base leading-relaxed text-text-secondary">
               {narration.content}
             </p>
             

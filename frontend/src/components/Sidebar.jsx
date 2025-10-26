@@ -33,7 +33,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed left-0 right-0 top-16 bottom-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -43,7 +43,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         initial={{ x: -280 }}
         animate={{ x: isOpen ? 0 : -280 }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className={`fixed left-0 top-0 h-full w-70 bg-dark-card/95 backdrop-blur-xl border-r border-dark-border z-50 lg:translate-x-0 lg:static lg:z-auto`}
+        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-dark-card/95 backdrop-blur-xl border-r border-dark-border z-40 lg:top-0 lg:h-full lg:z-auto lg:static lg:translate-x-0`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-dark-border">
@@ -58,7 +58,8 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 hover:bg-dark-hover rounded-lg transition-colors"
+            className="lg:hidden p-2 hover:bg-dark-hover rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70"
+            aria-label="Close sidebar"
           >
             <X className="h-5 w-5 text-text-secondary" />
           </button>

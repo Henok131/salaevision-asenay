@@ -16,7 +16,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl;
+    @apply bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6 md:p-6 lg:p-8;
   }
   
   .glass-button {
@@ -40,7 +40,11 @@
   }
   
   .chart-container {
-    @apply bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl p-6;
+    @apply bg-dark-card/95 backdrop-blur-xl border border-dark-border rounded-xl;
+  }
+
+  .btn-primary {
+    @apply min-h-[44px] px-4 py-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from/70 hover:shadow-neon-blue;
   }
   
   .sidebar-item {
