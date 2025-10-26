@@ -1,2 +1,15 @@
-QA RUN START Sun Oct 26 10:16:53 PM UTC 2025
-❌ Missing env key: VITE_SUPABASE_URL
+QA RUN START Sun Oct 26 10:25:28 PM UTC 2025
+Env OK: VITE_SUPABASE_URL=https://your-project.supabase.co
+Env OK: VITE_SUPABASE_ANON_KEY=your-anon-key
+Env OK: VITE_FRONTEND_URL=https://auth.asenaytech.com
+Supabase ping: FAILED
+
+ RUN  v4.0.3 /workspace/frontend
+      Coverage enabled with v8
+
+
+ Test Files  5 failed (5)
+      Tests  no tests
+   Start at  22:25:29
+   Duration  1.89s (transform 23ms, setup 0ms, collect 0ms, tests 0ms, environment 2.30s, prepare 88ms)
+
