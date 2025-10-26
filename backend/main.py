@@ -9,6 +9,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from routers import analyze, forecast, explain, auth, stripe_webhook
+from routers import tokens
 from services.database import init_db
 from services.supabase_client import get_supabase_client
 
@@ -58,6 +59,7 @@ app.include_router(analyze.router, prefix="/analyze", tags=["analysis"])
 app.include_router(forecast.router, prefix="/forecast", tags=["forecasting"])
 app.include_router(explain.router, prefix="/explain", tags=["explainability"])
 app.include_router(stripe_webhook.router, prefix="/stripe", tags=["payments"])
+app.include_router(tokens.router, prefix="/tokens", tags=["tokens"])
 
 @app.get("/")
 async def root():

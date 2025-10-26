@@ -42,7 +42,7 @@ log "Building frontend for preview"
 npm run build | tee -a "../$REPORT"
 
 log "Starting preview server on http://localhost:5173"
-(npx vite preview --host 0.0.0.0 --port 5173 >/dev/null 2>&1 &)
+npx vite preview --host 0.0.0.0 --port 5173 >/dev/null 2>&1 &
 PREVIEW_PID=$!
 sleep 2
 

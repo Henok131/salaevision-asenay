@@ -1,4 +1,4 @@
-QA RUN START Sun Oct 26 10:35:38 PM UTC 2025
+QA RUN START Sun Oct 26 10:41:42 PM UTC 2025
 Env OK: VITE_SUPABASE_URL=https://your-project.supabase.co
 Env OK: VITE_SUPABASE_ANON_KEY=your-anon-key
 Env OK: VITE_FRONTEND_URL=https://auth.asenaytech.com
@@ -7,16 +7,16 @@ Supabase ping: FAILED
  RUN  v4.0.3 /workspace/frontend
       Coverage enabled with v8
 
- ✓ tests/unit/resetPassword.test.jsx (2 tests) 201ms
- ✓ tests/unit/login.test.jsx (4 tests) 442ms
- ✓ tests/component/sidebar.test.jsx (1 test) 555ms
-     ✓ toggles collapsed state and persists  553ms
- ✓ tests/component/languageSwitcher.test.jsx (2 tests) 129ms
+ ✓ tests/unit/resetPassword.test.jsx (2 tests) 219ms
+ ✓ tests/unit/login.test.jsx (4 tests) 483ms
+ ✓ tests/component/sidebar.test.jsx (1 test) 527ms
+     ✓ toggles collapsed state and persists  525ms
+ ✓ tests/component/languageSwitcher.test.jsx (2 tests) 137ms
 
  Test Files  4 passed (4)
       Tests  9 passed (9)
-   Start at  22:35:39
-   Duration  2.03s (transform 264ms, setup 230ms, collect 893ms, tests 1.33s, environment 1.62s, prepare 78ms)
+   Start at  22:41:43
+   Duration  2.06s (transform 268ms, setup 266ms, collect 858ms, tests 1.37s, environment 1.67s, prepare 69ms)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -50,4 +50,109 @@ All files          |   70.96 |    70.58 |   68.75 |   73.33 |
 All required VITE_ env variables are set.
 vite v5.4.21 building for production...
 transforming...
-✓ 35 modules transformed.
+✓ 2584 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.67 kB │ gzip:   0.40 kB
+dist/assets/index-Cb0YELbB.css     29.89 kB │ gzip:   5.35 kB
+dist/assets/index-CWGywyrJ.js   1,014.44 kB │ gzip: 288.99 kB │ map: 4,244.98 kB
+✓ built in 4.98s
+
+Running 5 tests using 1 worker
+
+
+
+
+
+[1A[2K[1/5] tests/e2e/auth.spec.js:6:3 › Auth E2E › login page renders and validates
+[1A[2K  1) tests/e2e/auth.spec.js:6:3 › Auth E2E › login page renders and validates ──────────────────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/ubuntu/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+
+
+
+
+
+
+[1A[2K[2/5] tests/e2e/auth.spec.js:14:3 › Auth E2E › forgot password triggers reset email (mock)
+[1A[2K  2) tests/e2e/auth.spec.js:14:3 › Auth E2E › forgot password triggers reset email (mock) ──────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/ubuntu/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+
+
+
+
+
+
+[1A[2K[3/5] tests/e2e/auth.spec.js:20:3 › Auth E2E › reset password updates user
+[1A[2K  3) tests/e2e/auth.spec.js:20:3 › Auth E2E › reset password updates user ──────────────────────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/ubuntu/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+
+
+
+
+
+
+[1A[2K[4/5] tests/e2e/auth.spec.js:27:3 › Auth E2E › OAuth buttons exist and redirect
+[1A[2K  4) tests/e2e/auth.spec.js:27:3 › Auth E2E › OAuth buttons exist and redirect ─────────────────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/ubuntu/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+
+
+
+
+
+
+[1A[2K[5/5] tests/e2e/auth.spec.js:33:3 › Auth E2E › RTL toggle via LanguageSwitcher
+[1A[2K  5) tests/e2e/auth.spec.js:33:3 › Auth E2E › RTL toggle via LanguageSwitcher ──────────────────────
+
+    Error: browserType.launch: Executable doesn't exist at /home/ubuntu/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+
+
+[1A[2K  5 failed
+    tests/e2e/auth.spec.js:6:3 › Auth E2E › login page renders and validates ───────────────────────
+    tests/e2e/auth.spec.js:14:3 › Auth E2E › forgot password triggers reset email (mock) ───────────
+    tests/e2e/auth.spec.js:20:3 › Auth E2E › reset password updates user ───────────────────────────
+    tests/e2e/auth.spec.js:27:3 › Auth E2E › OAuth buttons exist and redirect ──────────────────────
+    tests/e2e/auth.spec.js:33:3 › Auth E2E › RTL toggle via LanguageSwitcher ───────────────────────
