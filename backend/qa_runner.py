@@ -34,7 +34,7 @@ async def run_tests():
     logger = configure_logger()
     site_url = require_env("SITE_URL").rstrip("/")
     base = f"{site_url}/api"
-    timeout = int(os.getenv("OPENAI_TIMEOUT_SECONDS", "30"))
+    timeout = int(require_env("OPENAI_TIMEOUT_SECONDS"))
     token = os.getenv("WEBHOOK_TOKEN", "")
 
     async with httpx.AsyncClient(timeout=timeout) as client:
