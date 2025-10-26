@@ -1,0 +1,2 @@
+QA RUN START Sun Oct 26 10:16:53 PM UTC 2025
+❌ Missing env key: VITE_SUPABASE_URL
