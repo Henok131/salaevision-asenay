@@ -5,7 +5,9 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    setupFiles: [],
+    setupFiles: './vitest.setup.ts',
+    include: ['tests/**/*.{test,spec}.{js,jsx,ts,tsx}'],
+    exclude: ['tests/e2e/**/*'],
     globals: true,
     coverage: {
       provider: 'v8',

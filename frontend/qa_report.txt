@@ -3,3 +3,15 @@ Running unit/component tests (Vitest)
 ❌ Vitest failed
 Running unit/component tests (Vitest)
 ❌ Vitest failed
+Running unit/component tests (Vitest)
+❌ Vitest failed
+Running unit/component tests (Vitest)
+❌ Vitest failed
+Running unit/component tests (Vitest)
+Building frontend for preview
+Running unit/component tests (Vitest)
+Building frontend for preview
+Running unit/component tests (Vitest)
+Building frontend for preview
+Running unit/component tests (Vitest)
+Building frontend for preview

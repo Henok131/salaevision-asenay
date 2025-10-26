@@ -215,7 +215,10 @@ export const Login = () => {
             </div>
           </div>
 
-          {/* Phone login (OTP) intentionally removed per requirements */}
+        {/* Close login card */}
+        </div>
+
+        {/* Phone login (OTP) intentionally removed per requirements */}
 
           <div className="mt-6 text-center">
             <p className="text-gray-300">

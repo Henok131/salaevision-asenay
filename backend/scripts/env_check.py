@@ -11,6 +11,7 @@ REQUIRED_KEYS = [
     'BACKEND_URL',
     'FRONTEND_URL',
     'JWT_SECRET_KEY',
+    'DEFAULT_TOKENS',
 ]
 
 missing = [k for k in REQUIRED_KEYS if not os.getenv(k)]

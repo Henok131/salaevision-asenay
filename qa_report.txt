@@ -1,4 +1,4 @@
-QA RUN START Sun Oct 26 10:25:28 PM UTC 2025
+QA RUN START Sun Oct 26 10:35:38 PM UTC 2025
 Env OK: VITE_SUPABASE_URL=https://your-project.supabase.co
 Env OK: VITE_SUPABASE_ANON_KEY=your-anon-key
 Env OK: VITE_FRONTEND_URL=https://auth.asenaytech.com
@@ -7,9 +7,47 @@ Supabase ping: FAILED
  RUN  v4.0.3 /workspace/frontend
       Coverage enabled with v8
 
+ ✓ tests/unit/resetPassword.test.jsx (2 tests) 201ms
+ ✓ tests/unit/login.test.jsx (4 tests) 442ms
+ ✓ tests/component/sidebar.test.jsx (1 test) 555ms
+     ✓ toggles collapsed state and persists  553ms
+ ✓ tests/component/languageSwitcher.test.jsx (2 tests) 129ms
 
- Test Files  5 failed (5)
-      Tests  no tests
-   Start at  22:25:29
-   Duration  1.89s (transform 23ms, setup 0ms, collect 0ms, tests 0ms, environment 2.30s, prepare 88ms)
+ Test Files  4 passed (4)
+      Tests  9 passed (9)
+   Start at  22:35:39
+   Duration  2.03s (transform 264ms, setup 230ms, collect 893ms, tests 1.33s, environment 1.62s, prepare 78ms)
 
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   70.96 |    70.58 |   68.75 |   73.33 |                   
+ src               |     100 |      100 |     100 |     100 |                   
+  i18n.js          |     100 |      100 |     100 |     100 |                   
+ src/assets        |       0 |        0 |       0 |       0 |                   
+  asenay-logo.svg  |       0 |        0 |       0 |       0 |                   
+ src/components    |      78 |       85 |   68.42 |   82.97 |                   
+  ...eSwitcher.jsx |   94.11 |    72.72 |     100 |   94.11 | 17                
+  Sidebar.jsx      |   69.69 |    89.65 |   53.84 |   76.66 | ...79,105,130-131 
+ src/config        |     100 |      100 |     100 |     100 |                   
+  ...bar.config.js |     100 |      100 |     100 |     100 |                   
+ src/locales       |       0 |        0 |       0 |       0 |                   
+  ar.json          |       0 |        0 |       0 |       0 |                   
+  en.json          |       0 |        0 |       0 |       0 |                   
+ src/pages         |   65.27 |       50 |   69.23 |   66.19 |                   
+  Login.jsx        |   53.33 |     37.5 |   55.55 |   54.54 | ...11-117,148-149 
+  ...tPassword.jsx |   85.18 |    66.66 |     100 |   85.18 | 20-21,31-32       
+-------------------|---------|----------|---------|---------|-------------------
+
+> salesvision-ai-frontend@0.0.0 build
+> npm run env:check && vite build
+
+
+> salesvision-ai-frontend@0.0.0 env:check
+> node -r dotenv/config scripts/env-check.js
+
+All required VITE_ env variables are set.
+vite v5.4.21 building for production...
+transforming...
+✓ 35 modules transformed.

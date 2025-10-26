@@ -64,7 +64,7 @@ export const Signup = () => {
     <div className="min-h-screen bg-dark-bg">
       <div className="pt-16">
         <div className="max-w-screen-2xl 2xl:max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8 flex items-center justify-center">
-      <div className="max-w-md w-full">
+          <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -273,9 +273,9 @@ export const Signup = () => {
               </Link>
             </p>
           </div>
-        </div>
+          </div>
 
-        {/* Features Preview */}
+          {/* Features Preview */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="glass-card p-4 text-center">
             <div className="text-accent-from text-2xl mb-2">📊</div>
@@ -292,7 +292,7 @@ export const Signup = () => {
             <h3 className="text-white font-semibold mb-1">Real-time</h3>
             <p className="text-gray-300 text-sm">Get results in seconds</p>
           </div>
-      </div>
+          </div>
         </div>
       </div>
     </div>
