@@ -1,14 +1,16 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const nav = [
-  { to: '/home', label: 'Home' },
-  { to: '/leads', label: 'Leads' },
-  { to: '/timeline', label: 'Timeline' },
-  { to: '/chat', label: 'Chat' },
-  { to: '/settings', label: 'Settings' },
+  { to: '/home', key: 'dashboard' },
+  { to: '/leads', key: 'leads' },
+  { to: '/timeline', key: 'timeline' },
+  { to: '/chat', key: 'score' },
+  { to: '/settings', key: 'settings' },
 ]
 
 export default function Sidebar() {
+  const { t } = useTranslation()
   return (
     <aside className="fixed left-0 top-0 h-full w-[var(--sidebar-width)] bg-white border-r border-gray-200 hidden md:block">
       <div className="px-5 py-4 font-semibold text-lg">CRM</div>
@@ -21,7 +23,7 @@ export default function Sidebar() {
               `block px-4 py-2 rounded-md ${isActive ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`
             }
           >
-            {n.label}
+            {t(n.key)}
           </NavLink>
         ))}
       </nav>
