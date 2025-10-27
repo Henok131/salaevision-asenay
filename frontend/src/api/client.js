@@ -1,6 +1,13 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_URL
+if (!API_BASE_URL) {
+  // Make misconfiguration explicit in non-production builds
+  // Vite only exposes variables prefixed with VITE_
+  // Ensure VITE_API_URL is set in your environment
+  // eslint-disable-next-line no-console
+  console.error('VITE_API_URL is not set. Please configure it in your .env file.')
+}
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

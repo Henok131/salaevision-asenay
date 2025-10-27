@@ -7,7 +7,7 @@ from services.supabase_client import get_supabase_client
 
 router = APIRouter()
 
-# Initialize Stripe
+# Initialize Stripe from environment
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
@@ -56,11 +56,15 @@ async def handle_subscription_created(subscription: Dict[str, Any]):
         customer_id = subscription['customer']
         plan_id = subscription['items']['data'][0]['price']['id']
         
-        # Map Stripe price IDs to our plan names
-        plan_mapping = {
-            "price_pro_monthly": "pro",
-            "price_business_monthly": "business"
-        }
+        # Map Stripe price IDs to our plan names via environment variables
+        # Configure these in your .env (see .env.example)
+        plan_mapping: Dict[str, str] = {}
+        price_pro_monthly = os.getenv("STRIPE_PRICE_PRO_MONTHLY")
+        price_business_monthly = os.getenv("STRIPE_PRICE_BUSINESS_MONTHLY")
+        if price_pro_monthly:
+            plan_mapping[price_pro_monthly] = "pro"
+        if price_business_monthly:
+            plan_mapping[price_business_monthly] = "business"
         
         plan_name = plan_mapping.get(plan_id, "free")
         

@@ -9,7 +9,8 @@ from services.supabase_client import get_supabase_client
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT settings
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+# All JWT configuration must come from environment variables
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
@@ -23,6 +24,9 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """Create JWT access token"""
+    if not SECRET_KEY:
+        # Fail fast if JWT secret is not configured
+        raise ValueError("JWT_SECRET_KEY must be set in the environment")
     to_encode = data.copy()
     
     if expires_delta:

@@ -1,0 +1,60 @@
+QA Report - SalesVision AI
+Date: 2025-10-27
+Environment: Cursor editor container (Python 3.13.3)
+
+Summary
+- Status: Blocked on executing tests due to Python 3.13 compatibility of backend dependencies.
+- Reason: FastAPI (pydantic v2 / pydantic-core) and pandas/prophet lack binary wheels for Python 3.13 in this environment, causing installation/build failures. Tests that rely on FastAPI TestClient cannot run without FastAPI.
+
+What was attempted
+- Wrote backend integration tests for /auth, /analyze, /explain, /forecast under backend/tests/.
+- Added conftest.py to stub heavy integrations (OpenAI, Stripe, Supabase, Prophet, numpy/pandas minimal shims) to avoid network/compilation.
+- Installed pytest and pytest-cov successfully in user site-packages.
+- Installing FastAPI + dependencies failed because pydantic-core could not build on Python 3.13 (Rust build error), and pandas fails to compile C extensions.
+
+Results
+- Tests executed: 0 (blocked at import due to missing FastAPI)
+- Coverage: N/A
+
+Findings (static verification)
+- Environment variable wiring: Verified all sensitive/configurable values are read from env.
+  - Backend: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_SENTIMENT_MAX_TOKENS, OPENAI_INSIGHTS_MAX_TOKENS, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_PRO_MONTHLY, STRIPE_PRICE_BUSINESS_MONTHLY, JWT_SECRET_KEY, JWT_ALGORITHM, JWT_ACCESS_TOKEN_EXPIRE_MINUTES, FRONTEND_URL, CORS_ALLOW_ORIGINS, DATABASE_URL.
+  - Frontend: VITE_API_URL, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_STRIPE_PUBLISHABLE_KEY, VITE_SALES_EMAIL.
+- Hardcoded values removed: prior hardcoded origins and Stripe price IDs have been refactored to envs. No secrets found hardcoded.
+- Known static URLs remain intentionally (non-secret): docker-compose and Dockerfile healthchecks use http://localhost; frontend internal routes like /signup, /checkout/pro.
+- Missing modules requested for verification: tokens.py and consent.py do not exist in the repository.
+
+Unverified/Not executed
+- ❌ Backend tests execution (blocked by dependency builds on Python 3.13)
+- ❌ Coverage report generation
+- 🔧 Frontend unit tests (no test framework configured; no vitest/jest in package.json)
+
+Warnings / Deprecations
+- None flagged at static analysis level.
+
+Flakiness risks (static)
+- External service dependencies (Supabase, Stripe, OpenAI) are isolated behind envs; in real runs, network/timeouts should be considered.
+
+Recommendations to run tests inside Cursor editor deterministically
+1) Use Docker (Python 3.11):
+   - Build: docker build -t sv-backend-test ./backend
+   - Run tests inside container (install pytest): docker run --rm -v "$PWD":/app -w /app sv-backend-test sh -lc "pip install pytest pytest-cov && pytest -q --maxfail=1 --disable-warnings --cov=backend --cov-report=term-missing"
+   Note: Docker may not be available in this environment.
+
+2) Create a venv with Python 3.11:
+   - If pyenv or uv is available, create a 3.11 virtualenv and run pip install -r backend/requirements.txt; then pip install pytest pytest-cov; run pytest.
+
+3) Fallback (if neither is possible):
+   - Replace FastAPI + pydantic runtime with stubs just for testing, or run tests on a developer machine/CI that uses Python 3.11 (the app’s Dockerfile uses 3.11 and should work).
+
+Manual review suggestions
+- Add CI job (GitHub Actions) using Python 3.11 to run pytest with coverage and to lint frontend (vitest/eslint) using Node 18.
+- Add a lightweight test matrix with stubbed integrations (already prepared conftest) to ensure routes stay green without external services.
+
+Action items (optional)
+- Add frontend test framework (vitest + @testing-library/react) and basic tests for AuthContext and api client.
+- Add Makefile targets: make test, make coverage, make test-frontend.
+
+Conclusion
+- The codebase is wired to environment variables only and ready for production credential injection via .env files.
+- Automated tests could not be executed within this editor environment due to Python 3.13 package compatibility. Execute them in Docker (Python 3.11, as in backend Dockerfile) or a local/CI environment with Python 3.11 for reliable results.

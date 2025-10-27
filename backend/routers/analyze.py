@@ -14,8 +14,12 @@ from services.auth import verify_token
 router = APIRouter()
 security = HTTPBearer()
 
-# Initialize OpenAI
+# Initialize OpenAI and model configuration from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
+OPENAI_SENTIMENT_MAX_TOKENS = int(os.getenv("OPENAI_SENTIMENT_MAX_TOKENS", "200"))
+OPENAI_INSIGHTS_MAX_TOKENS = int(os.getenv("OPENAI_INSIGHTS_MAX_TOKENS", "1200"))
 
 @router.post("/")
 async def analyze_sales_data(
@@ -95,13 +99,13 @@ async def analyze_text_sentiment(text: str) -> Dict[str, Any]:
     """
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
+            model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "You are a marketing sentiment analyst. Analyze the tone, sentiment, and key themes of marketing text."},
                 {"role": "user", "content": f"Analyze the tone and sentiment of this marketing text: {text}"}
             ],
-            max_tokens=200,
-            temperature=0.7
+            max_tokens=OPENAI_SENTIMENT_MAX_TOKENS,
+            temperature=OPENAI_TEMPERATURE
         )
         
         analysis = response.choices[0].message.content
@@ -221,13 +225,13 @@ async def generate_multimodal_insights(df: pd.DataFrame, text_insight: Optional[
         """
         
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
+            model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "You are a multimodal sales analytics expert. Analyze sales data, marketing text, and visual elements to provide integrated, explainable insights."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1200,
-            temperature=0.7
+            max_tokens=OPENAI_INSIGHTS_MAX_TOKENS,
+            temperature=OPENAI_TEMPERATURE
         )
         
         # Parse AI response
