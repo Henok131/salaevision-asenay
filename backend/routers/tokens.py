@@ -63,7 +63,6 @@ async def consume_tokens(payload: ConsumeRequest, credentials: HTTPAuthorization
     amount = max(1, int(payload.amount))
 
     # Atomic update: only update if within limit
-    update = supabase.rpc("", {}).execute()  # placeholder to satisfy type check
     try:
         update = supabase.table("token_usage").update({
             "used_tokens": (row.get("used_tokens", 0) + amount),
