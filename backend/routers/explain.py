@@ -77,34 +77,25 @@ async def generate_shap_explanations(
             "Product Quality"
         ]
         
-        # Generate random but realistic importance scores
-        np.random.seed(42)  # For consistent results
-        if rng_exponential is None:
-            rng_exponential = lambda lam, size: np.random.exponential(lam, size)
-        if rng_random is None:
-            rng_random = lambda: np.random.random()
+        np.random.seed(42)
+        # Adapters for RNGs
+        _exp = (lambda n: rng_exponential(0.3, n)) if rng_exponential else (lambda n: np.random.exponential(0.3, n))
+        def _rand_vec(n: int):
+            if rng_random is None:
+                return np.array([np.random.random() for _ in range(n)])
+            try:
+                v = rng_random(n)
+                return np.array(v)
+            except TypeError:
+                return np.array([rng_random() for _ in range(n)])
 
-        importance_scores = rng_exponential(0.3, len(features))
-        importance_scores = importance_scores / importance_scores.sum()  # Normalize
-        
-        # Create feature importance data
-        feature_importance = []
-        for i, feature in enumerate(features):
-            feature_importance.append({
-                "feature": feature,
-                "importance": float(importance_scores[i]),
-                "impact": "positive" if rng_random() > 0.3 else "negative",
-                "description": get_feature_description(feature)
-            })
-        
-        # Sort by importance
-        feature_importance.sort(key=lambda x: x["importance"], reverse=True)
-        
+        feature_importance = build_feature_importance(features, _exp, _rand_vec)
+
         # Generate SHAP values for sample predictions
         shap_values = generate_sample_shap_values(features)
         
         # Generate insights
-        insights = generate_explanation_insights(feature_importance)
+        insights = build_insights(feature_importance)
         
         return {
             "feature_importance": feature_importance,
@@ -221,4 +212,45 @@ def generate_fallback_explanations() -> Dict[str, Any]:
         },
         "model_confidence": 0.6
     }
+
+
+def build_feature_importance(features: List[str], rng_exponential, rng_random_vec) -> List[Dict[str, Any]]:
+    """Pure helper to compute and sort feature importance with positivity flag.
+
+    rng_exponential(n) -> array of impacts
+    rng_random_vec(n) -> array of uniform[0,1] to determine positivity
+    """
+    import numpy as _np
+    impacts = _np.array(rng_exponential(len(features)), dtype=float)
+    # Support Python lists in tests lacking ndarray.sum()
+    try:
+        total = impacts.sum()  # type: ignore[attr-defined]
+    except AttributeError:
+        total = sum(impacts)
+    if total == 0:
+        impacts = _np.ones_like(impacts)
+        total = len(impacts)
+    impacts = [float(v) / float(total) for v in impacts]
+    rvec = _np.array(rng_random_vec(len(features)))
+    try:
+        positives = rvec > 0.5  # type: ignore[operator]
+    except Exception:
+        positives = [float(x) > 0.5 for x in rvec]
+    data = [
+        {
+            "feature": f,
+            "impact": float(imp),
+            "positive": bool(pos)
+        }
+        for f, imp, pos in zip(features, impacts, positives)
+    ]
+    data.sort(key=lambda x: -x["impact"])
+    return data
+
+
+def build_insights(feature_importance: List[Dict[str, Any]]) -> List[str]:
+    return [
+        f"The feature '{item['feature']}' had a {'positive' if item.get('positive') else 'negative'} impact on prediction."
+        for item in feature_importance
+    ]
 

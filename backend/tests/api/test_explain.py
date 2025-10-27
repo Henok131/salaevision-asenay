@@ -13,6 +13,9 @@ if REPO_ROOT not in sys.path:
 
 from backend.main import app  # noqa: E402
 from routers import explain as explain_mod  # type: ignore
+from routers.explain import build_feature_importance, build_insights  # type: ignore
+import types as _types
+import sys as _sys
 
 
 def _explain_prefix() -> str:
@@ -277,6 +280,39 @@ def test_generate_shap_explanations_injected_rng_positive_dominant(monkeypatch):
         assert len(ins['key_drivers']) >= 1
         assert len(ins['recommendations']) >= 1
         assert len(ins['risk_factors']) >= 1
+
+
+@pytest.mark.unit
+def test_build_feature_importance_ordering():
+    # Provide a minimal numpy substitute for the function call site
+    _np_stub = _types.ModuleType('numpy')
+    def _array(x, dtype=float):
+        return [dtype(v) for v in x]
+    _np_stub.array = _array
+    def _sum(arr):
+        return sum(arr)
+    _np_stub.ones_like = lambda arr: [1.0 for _ in arr]
+    _np_stub.ndarray = list  # duck type
+    # Provide .sum on list via monkeypatch by wrapping checks below
+    _sys.modules['numpy'] = _np_stub
+    features = ['a', 'b', 'c']
+    def fake_exp(n): return _array([0.3, 0.9, 0.1])
+    def fake_rand(n): return _array([1.0, 0.0, 1.0])
+    # Wrap build_feature_importance to adapt list operations
+    out = build_feature_importance(features, lambda n: fake_exp(n), lambda n: fake_rand(n))
+    assert out[0]['feature'] == 'b'
+    assert all('feature' in item for item in out)
+
+
+@pytest.mark.unit
+def test_build_insights_output():
+    feats = [
+        {'feature': 'x1', 'impact': 0.8, 'positive': True},
+        {'feature': 'x2', 'impact': 0.3, 'positive': False}
+    ]
+    lines = build_insights(feats)
+    assert "positive" in lines[0] and "negative" in lines[1]
+    assert lines[0].startswith("The feature")
 
 
 @pytest.mark.unit
