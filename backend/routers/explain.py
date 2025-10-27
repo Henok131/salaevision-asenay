@@ -53,7 +53,11 @@ async def explain_insights(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Explanation generation failed: {str(e)}")
 
-async def generate_shap_explanations() -> Dict[str, Any]:
+async def generate_shap_explanations(
+    *,
+    rng_exponential=None,
+    rng_random=None,
+) -> Dict[str, Any]:
     """
     Generate SHAP explanations for sales data
     """
@@ -75,7 +79,12 @@ async def generate_shap_explanations() -> Dict[str, Any]:
         
         # Generate random but realistic importance scores
         np.random.seed(42)  # For consistent results
-        importance_scores = np.random.exponential(0.3, len(features))
+        if rng_exponential is None:
+            rng_exponential = lambda lam, size: np.random.exponential(lam, size)
+        if rng_random is None:
+            rng_random = lambda: np.random.random()
+
+        importance_scores = rng_exponential(0.3, len(features))
         importance_scores = importance_scores / importance_scores.sum()  # Normalize
         
         # Create feature importance data
@@ -84,7 +93,7 @@ async def generate_shap_explanations() -> Dict[str, Any]:
             feature_importance.append({
                 "feature": feature,
                 "importance": float(importance_scores[i]),
-                "impact": "positive" if np.random.random() > 0.3 else "negative",
+                "impact": "positive" if rng_random() > 0.3 else "negative",
                 "description": get_feature_description(feature)
             })
         

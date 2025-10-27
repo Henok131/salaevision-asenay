@@ -12,6 +12,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from backend.main import app  # noqa: E402
+from routers.forecast import format_forecast_output  # type: ignore
 
 
 def _forecast_prefix() -> str:
@@ -364,6 +365,38 @@ def test_extract_patterns_exception_defaults():
 
     assert f.extract_weekly_pattern(BadDF()) == [0.1, 0.2, 0.3, 0.4, 0.5, 0.2, 0.1]
     assert f.extract_yearly_pattern(BadDF()) == [0.1] * 365
+
+
+@pytest.mark.unit
+def test_format_forecast_output_increasing_and_decreasing():
+    # Increasing trend
+    out_inc = format_forecast_output(
+        historical_dates=['2024-01-01'],
+        historical_values=[1.0],
+        forecast_dates=['2024-01-02','2024-01-03'],
+        forecast_values=[2.0, 3.0],
+        forecast_lower=[1.5, 2.5],
+        forecast_upper=[2.5, 3.5],
+        trend_series=[0.0, 1.0],
+        weekly_pattern=[0.1]*7,
+        yearly_pattern=[0.1]*365,
+    )
+    assert out_inc['trend']['direction'] == 'increasing'
+    assert len(out_inc['forecast']['dates']) == 2
+
+    # Decreasing trend
+    out_dec = format_forecast_output(
+        historical_dates=['2024-01-01'],
+        historical_values=[1.0],
+        forecast_dates=['2024-01-02','2024-01-03'],
+        forecast_values=[2.0, 3.0],
+        forecast_lower=[1.5, 2.5],
+        forecast_upper=[2.5, 3.5],
+        trend_series=[1.0, 0.0],
+        weekly_pattern=[0.1]*7,
+        yearly_pattern=[0.1]*365,
+    )
+    assert out_dec['trend']['direction'] == 'decreasing'
 
 
 @pytest.mark.unit

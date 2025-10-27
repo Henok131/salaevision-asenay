@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import pandas as pd
 import numpy as np
 from prophet import Prophet
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Sequence
 import os
 from services.supabase_client import get_supabase_client
 from services.auth import verify_token
@@ -86,29 +86,29 @@ async def generate_prophet_forecast(days: int) -> Dict[str, Any]:
         future = model.make_future_dataframe(periods=days)
         forecast = model.predict(future)
         
-        # Extract forecast data
-        forecast_data = {
-            "historical": {
-                "dates": df['ds'].dt.strftime('%Y-%m-%d').tolist(),
-                "values": df['y'].tolist()
-            },
-            "forecast": {
-                "dates": forecast.tail(days)['ds'].dt.strftime('%Y-%m-%d').tolist(),
-                "values": forecast.tail(days)['yhat'].tolist(),
-                "lower_bound": forecast.tail(days)['yhat_lower'].tolist(),
-                "upper_bound": forecast.tail(days)['yhat_upper'].tolist()
-            },
-            "trend": {
-                "direction": "increasing" if forecast['trend'].iloc[-1] > forecast['trend'].iloc[-2] else "decreasing",
-                "confidence": 0.85
-            },
-            "seasonality": {
-                "weekly_pattern": extract_weekly_pattern(forecast),
-                "yearly_pattern": extract_yearly_pattern(forecast)
-            }
-        }
-        
-        return forecast_data
+        # Extract lists from pandas objects
+        hist_dates = df['ds'].dt.strftime('%Y-%m-%d').tolist()
+        hist_values = df['y'].tolist()
+        tail = forecast.tail(days)
+        fc_dates = tail['ds'].dt.strftime('%Y-%m-%d').tolist()
+        fc_values = tail['yhat'].tolist()
+        fc_lower = tail['yhat_lower'].tolist()
+        fc_upper = tail['yhat_upper'].tolist()
+        trend_series = forecast['trend'].tolist()
+        weekly_pattern = extract_weekly_pattern(forecast)
+        yearly_pattern = extract_yearly_pattern(forecast)
+
+        return format_forecast_output(
+            historical_dates=hist_dates,
+            historical_values=hist_values,
+            forecast_dates=fc_dates,
+            forecast_values=fc_values,
+            forecast_lower=fc_lower,
+            forecast_upper=fc_upper,
+            trend_series=trend_series,
+            weekly_pattern=weekly_pattern,
+            yearly_pattern=yearly_pattern,
+        )
         
     except Exception as e:
         # Fallback to simple linear forecast
@@ -158,5 +158,44 @@ def generate_simple_forecast(days: int) -> Dict[str, Any]:
             "weekly_pattern": [0.1, 0.2, 0.3, 0.4, 0.5, 0.2, 0.1],
             "yearly_pattern": [0.1] * 365
         }
+    }
+
+def format_forecast_output(
+    *,
+    historical_dates: Sequence[str],
+    historical_values: Sequence[float],
+    forecast_dates: Sequence[str],
+    forecast_values: Sequence[float],
+    forecast_lower: Sequence[float],
+    forecast_upper: Sequence[float],
+    trend_series: Sequence[float],
+    weekly_pattern: Sequence[float] | None = None,
+    yearly_pattern: Sequence[float] | None = None,
+) -> Dict[str, Any]:
+    """Pure formatter for forecast output. Accepts simple lists for easy testing."""
+    # Determine trend
+    direction = "stable"
+    if len(trend_series) >= 2:
+        direction = "increasing" if float(trend_series[-1]) > float(trend_series[-2]) else "decreasing"
+
+    return {
+        "historical": {
+            "dates": list(historical_dates),
+            "values": list(historical_values),
+        },
+        "forecast": {
+            "dates": list(forecast_dates),
+            "values": list(forecast_values),
+            "lower_bound": list(forecast_lower),
+            "upper_bound": list(forecast_upper),
+        },
+        "trend": {
+            "direction": direction,
+            "confidence": 0.85,
+        },
+        "seasonality": {
+            "weekly_pattern": list(weekly_pattern) if weekly_pattern is not None else [0.1]*7,
+            "yearly_pattern": list(yearly_pattern) if yearly_pattern is not None else [0.1]*365,
+        },
     }
 
