@@ -350,3 +350,200 @@ def test_extract_patterns_try_paths():
 
     yearly = f.extract_yearly_pattern(FakeDF())
     assert isinstance(yearly, list) and len(yearly) in (7, 365)
+
+
+@pytest.mark.unit
+def test_extract_patterns_exception_defaults():
+    from routers import forecast as f
+
+    class BadDF:
+        def __getitem__(self, key):
+            raise RuntimeError('boom')
+        def groupby(self, key):
+            raise RuntimeError('boom')
+
+    assert f.extract_weekly_pattern(BadDF()) == [0.1, 0.2, 0.3, 0.4, 0.5, 0.2, 0.1]
+    assert f.extract_yearly_pattern(BadDF()) == [0.1] * 365
+
+
+@pytest.mark.unit
+def test_generate_prophet_forecast_happy_path(monkeypatch):
+    from datetime import datetime, timedelta
+    from routers import forecast as f
+
+    def fake_date_range(start, end, freq):
+        # return 3 days
+        base = datetime(2024, 1, 1)
+        return [base + timedelta(days=i) for i in range(3)]
+
+    class Series(list):
+        @property
+        def dt(self):
+            class DT:
+                def __init__(self, vals):
+                    self._vals = vals
+                def strftime(self, fmt):
+                    return [v.strftime(fmt) for v in self._vals]
+            return DT(self)
+        def tolist(self):
+            return list(self)
+
+    class DF:
+        def __init__(self, data):
+            self._data = data
+        def __getitem__(self, key):
+            return Series(self._data[key])
+
+    class PredictFrame:
+        def __init__(self, ds, days):
+            self._data = {
+                'ds': ds,
+                'yhat': [1.0 + i for i in range(len(ds))],
+                'yhat_lower': [0.5 + i for i in range(len(ds))],
+                'yhat_upper': [1.5 + i for i in range(len(ds))],
+                'trend': [i for i in range(len(ds))],
+            }
+            self._days = days
+        def __getitem__(self, key):
+            return Series(self._data[key])
+        def tail(self, n):
+            # trim to last n
+            ds = self._data['ds'][-n:]
+            pf = PredictFrame(ds, n)
+            return pf
+
+    class Model:
+        def fit(self, df):
+            return self
+        def make_future_dataframe(self, periods):
+            return DF({'ds': [datetime(2024,1,1) + timedelta(days=i) for i in range(periods)]})
+        def predict(self, future):
+            ds = list(future._data['ds'])
+            return PredictFrame(ds, len(ds))
+
+    # Patch into module
+    # Pandas may be stubbed; if date_range missing, inject it
+    if not hasattr(f.pd, 'date_range'):
+        class _PDM: pass
+        f.pd.date_range = fake_date_range  # type: ignore[attr-defined]
+    else:
+        monkeypatch.setattr(f.pd, 'date_range', fake_date_range)
+    monkeypatch.setattr(f.pd, 'DataFrame', DF)
+    monkeypatch.setattr(f, 'Prophet', Model)
+    monkeypatch.setattr(f.np.random, 'normal', lambda *a, **k: 0.0)
+
+    # generate_prophet_forecast is async; run to completion
+    import asyncio
+    out = asyncio.get_event_loop().run_until_complete(f.generate_prophet_forecast(5))
+    assert 'forecast' in out and 'historical' in out and 'trend' in out
+
+
+@pytest.mark.unit
+def test_generate_prophet_forecast_invalid_structure_fallback(monkeypatch):
+    # Make predict return missing keys to trigger fallback
+    from datetime import datetime, timedelta
+    from routers import forecast as f
+
+    monkeypatch.setattr(f.pd, 'date_range', lambda *a, **k: [datetime(2024,1,1)])
+    class DF:
+        def __init__(self, data):
+            self._data = data
+        def __getitem__(self, key):
+            class S(list):
+                @property
+                def dt(self):
+                    class DT:
+                        def __init__(self, vals):
+                            self._v = vals
+                        def strftime(self, fmt):
+                            return [d.strftime(fmt) for d in self._v]
+                    return DT(self)
+                def tolist(self):
+                    return list(self)
+            return S(self._data[key])
+    class Model:
+        def fit(self, df):
+            return self
+        def make_future_dataframe(self, periods):
+            return DF({'ds':[datetime(2024,1,1)]})
+        def predict(self, future):
+            # Missing yhat_lower/upper triggers exception
+            class PF:
+                def __getitem__(self, k):
+                    raise KeyError('missing')
+                def tail(self, n):
+                    return self
+            return PF()
+    monkeypatch.setattr(f.pd, 'DataFrame', DF)
+    monkeypatch.setattr(f, 'Prophet', Model)
+    monkeypatch.setattr(f.np.random, 'normal', lambda *a, **k: 0.0)
+
+    import asyncio
+    out = asyncio.get_event_loop().run_until_complete(f.generate_prophet_forecast(1))
+    # Should fall back to simple forecast structure
+    assert 'forecast' in out and 'dates' in out['forecast']
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_forecast_supabase_select_raises_500():
+    # Simulate Supabase failure during select
+    async def mock_verify(_):
+        return {'id': 'user_1'}
+    class BadTable:
+        def select(self, *a, **k): return self
+        def eq(self, *a, **k): return self
+        def execute(self): raise RuntimeError('db select failed')
+    class BadClient:
+        def table(self, name): return BadTable()
+    from routers import forecast as r
+    prefix = _forecast_prefix()
+    transport = httpx.ASGITransport(app=app)
+    async def _noop(): return None
+    with (
+        patch('backend.main.init_db', new=_noop),
+        patch.object(r, 'verify_token', new=mock_verify),
+        patch.object(r, 'get_supabase_client', return_value=BadClient()),
+    ):
+        async with httpx.AsyncClient(transport=transport, base_url='http://test') as ac:
+            resp = await ac.post(f'{prefix}/?analysis_id=an1', headers=_auth_header())
+            assert resp.status_code == 500
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_forecast_supabase_insert_raises_500():
+    # Simulate insert failure after forecast generated
+    async def mock_verify(_):
+        return {'id': 'user_1'}
+    class OkTable:
+        def __init__(self, name): self._name = name
+        def select(self, *a, **k): return self
+        def eq(self, *a, **k): return self
+        def execute(self):
+            if self._name == 'analysis_results':
+                return SimpleNamespace(data=[{'id':'an1','user_id':'user_1'}])
+            raise RuntimeError('insert should not call execute here')
+        def insert(self, obj):
+            class E:
+                def execute(self):
+                    raise RuntimeError('db insert failed')
+            return E()
+    class Client:
+        def table(self, name): return OkTable(name)
+    from routers import forecast as r
+    prefix = _forecast_prefix()
+    transport = httpx.ASGITransport(app=app)
+    async def _noop(): return None
+    # Ensure generate_prophet_forecast is fast and deterministic
+    async def fake_gen(days:int):
+        return {'historical':{'dates':[],'values':[]},'forecast':{'dates':['2024-01-01'],'values':[1],'lower_bound':[0],'upper_bound':[2]}, 'trend':{'direction':'increasing','confidence':0.9}, 'seasonality':{'weekly_pattern':[0.1]*7,'yearly_pattern':[0.1]*365}}
+    with (
+        patch('backend.main.init_db', new=_noop),
+        patch.object(r, 'verify_token', new=mock_verify),
+        patch.object(r, 'get_supabase_client', return_value=Client()),
+        patch.object(r, 'generate_prophet_forecast', new=fake_gen),
+    ):
+        async with httpx.AsyncClient(transport=transport, base_url='http://test') as ac:
+            resp = await ac.post(f'{prefix}/?analysis_id=an1', headers=_auth_header())
+            assert resp.status_code == 500
