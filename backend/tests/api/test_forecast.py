@@ -471,6 +471,8 @@ def test_generate_prophet_forecast_happy_path(monkeypatch):
             return Grouped()
 
     class Model:
+        def __init__(self, **kwargs):
+            pass
         def fit(self, df):
             return self
         def make_future_dataframe(self, periods):
@@ -636,6 +638,8 @@ def test_generate_prophet_forecast_trend_decreasing_with_seasonality(monkeypatch
             return Grouped()
 
     class Model:
+        def __init__(self, **kwargs):
+            pass
         def fit(self, df): return self
         def make_future_dataframe(self, periods):
             return DF({'ds':[datetime(2024,1,1)+timedelta(days=i) for i in range(periods)]})
