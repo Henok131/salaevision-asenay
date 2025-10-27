@@ -283,6 +283,42 @@ def test_generate_shap_explanations_injected_rng_positive_dominant(monkeypatch):
 
 
 @pytest.mark.unit
+def test_generate_shap_explanations_full_branch():
+    from routers.explain import generate_shap_explanations as gse  # type: ignore
+
+    class FakeNumpyArray:
+        def __init__(self, data):
+            self._data = list(data)
+        def __gt__(self, val):
+            return FakeNumpyArray([x > val for x in self._data])
+        def __iter__(self):
+            return iter(self._data)
+        def __len__(self):
+            return len(self._data)
+        def tolist(self):
+            return list(self._data)
+
+    def fake_rng_exp(_lam, n):
+        return FakeNumpyArray([0.4, 0.6, 0.2][:n])
+    def fake_rng_rand(n):
+        return FakeNumpyArray([0.9, 0.3, 0.8][:n])
+
+    import asyncio
+    feats = ['feat1', 'feat2', 'feat3']
+    out = asyncio.get_event_loop().run_until_complete(
+        gse(rng_exponential=fake_rng_exp, rng_random=fake_rng_rand, features=feats)
+    )
+    fi = out['feature_importance']
+    assert len(fi) == 3
+    assert all('feature' in f for f in fi)
+    assert all('impact' in f for f in fi)
+    # 'impact' key is present with positive/negative as strings
+    assert all(f['impact'] in ('positive','negative') for f in fi)
+    ins = out['insights']
+    assert len(ins) == 3
+
+
+@pytest.mark.unit
 def test_build_feature_importance_ordering():
     # Provide a minimal numpy substitute for the function call site
     _np_stub = _types.ModuleType('numpy')

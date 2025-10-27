@@ -57,6 +57,7 @@ async def generate_shap_explanations(
     *,
     rng_exponential=None,
     rng_random=None,
+    features: List[str] | None = None,
 ) -> Dict[str, Any]:
     """
     Generate SHAP explanations for sales data
@@ -66,7 +67,7 @@ async def generate_shap_explanations(
         # In production, you would use actual SHAP analysis
         
         # Simulate feature importance
-        features = [
+        features = features or [
             "Marketing Spend",
             "Sales Team Size", 
             "Product Price",
@@ -97,8 +98,19 @@ async def generate_shap_explanations(
         # Generate insights
         insights = build_insights(feature_importance)
         
+        # Map to API schema (keep 'impact' label for compatibility)
+        api_fi = [
+            {
+                "feature": item["feature"],
+                "importance": item["impact"],
+                "impact": "positive" if item.get("positive") else "negative",
+                "description": get_feature_description(item["feature"]),
+            }
+            for item in feature_importance
+        ]
+
         return {
-            "feature_importance": feature_importance,
+            "feature_importance": api_fi,
             "shap_values": shap_values,
             "insights": insights,
             "model_confidence": 0.87
