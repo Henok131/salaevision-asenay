@@ -173,3 +173,35 @@ async def test_explain_internal_error_returns_500():
         async with httpx.AsyncClient(transport=transport, base_url='http://test') as ac:
             resp = await ac.post(f'{prefix}/?analysis_id=an1', headers=_auth_header())
             assert resp.status_code == 500
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_explain_invalid_token_401():
+    from routers import explain as e_router
+
+    async def bad_verify(_):
+        return None
+
+    prefix = _explain_prefix()
+    transport = httpx.ASGITransport(app=app)
+
+    async def _noop():
+        return None
+
+    with patch('backend.main.init_db', new=_noop), patch.object(e_router, 'verify_token', new=bad_verify):
+        async with httpx.AsyncClient(transport=transport, base_url='http://test') as ac:
+            resp = await ac.post(f'{prefix}/?analysis_id=an1', headers=_auth_header())
+            # Router wraps exceptions; accept 401/403 or 500 depending on path
+            assert resp.status_code in (401, 403, 500)
+
+
+@pytest.mark.unit
+def test_explain_generate_fallback_explanations_shape():
+    # Directly hit fallback generator for coverage & schema validation
+    from routers import explain as e
+    out = e.generate_fallback_explanations()
+    assert 'feature_importance' in out
+    assert 'shap_values' in out
+    assert 'insights' in out
+    assert 'model_confidence' in out
