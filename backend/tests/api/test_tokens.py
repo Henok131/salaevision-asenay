@@ -1,5 +1,5 @@
 import pytest
-from httpx import AsyncClient
+import httpx
 from fastapi import FastAPI
 from routers import tokens as tokens_router
 from routers import consent as consent_router
@@ -8,130 +8,97 @@ from routers import consent as consent_router
 async def test_token_status_unauthorized():
     app = FastAPI()
     app.include_router(tokens_router.router, prefix="/api/token")
-    async with AsyncClient(base_url="http://test") as ac:
-        # mount app via transport
-        ac._transport = ac._transport or None
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         resp = await ac.get("/api/token/status")
-        # unauthorized without auth header should be 401/403; here transport to app is not set, so skip
-        assert isinstance(resp.status_code, int)
+        assert resp.status_code in (401, 403)
 
 @pytest.mark.asyncio
 async def test_token_status_mocked(monkeypatch):
     async def mock_verify(token):
         return {"id": "00000000-0000-0000-0000-000000000000"}
-    from services import auth as auth_service
-    monkeypatch.setattr(auth_service, "verify_token", mock_verify)
+    monkeypatch.setattr(tokens_router, "verify_token", mock_verify)
 
-    class MockTable:
-        def select(self, *_args, **_kwargs):
-            class R:
-                def eq(self, *_a, **_k):
-                    class E:
-                        @property
-                        def data(self):
-                            return []
-                    return E()
-            return R()
-        def insert(self, obj):
-            class E:
-                @property
-                def data(self):
-                    return [obj]
-            return E()
-    class MockSupabase:
-        def table(self, _):
-            return MockTable()
-
-    from services import supabase_client
-    monkeypatch.setattr(supabase_client, "get_supabase_client", lambda: MockSupabase())
+    async def mock_get_or_create(uid: str):
+        return {"plan": "free", "total_tokens": 1000, "used_tokens": 0, "last_used": None}
+    monkeypatch.setattr(tokens_router, "_get_or_create_token_row", mock_get_or_create)
 
     app = FastAPI()
     app.include_router(tokens_router.router, prefix="/api/token")
-    async with AsyncClient(app=app, base_url="http://test") as ac:  # type: ignore
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         resp = await ac.get("/api/token/status", headers={"Authorization": "Bearer x"})
-        assert resp.status_code in (200, 404, 405)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total_tokens"] == 1000
+        assert data["remaining_tokens"] == 1000
 
 @pytest.mark.asyncio
 async def test_token_consume_under_limit(monkeypatch):
     async def mock_verify(token):
         return {"id": "00000000-0000-0000-0000-000000000000"}
-    from services import auth as auth_service
-    monkeypatch.setattr(auth_service, "verify_token", mock_verify)
+    monkeypatch.setattr(tokens_router, "verify_token", mock_verify)
+
+    async def mock_get_or_create(uid: str):
+        return {"plan": "free", "total_tokens": 10, "used_tokens": 5, "last_used": None}
+    monkeypatch.setattr(tokens_router, "_get_or_create_token_row", mock_get_or_create)
+
+    class MockUpdate:
+        def __init__(self, obj):
+            self.obj = obj
+        def eq(self, *_a, **_k):
+            class E:
+                def __init__(self, obj):
+                    self._obj = obj
+                @property
+                def data(self):
+                    return [self._obj]
+            return E(self.obj)
 
     class MockTable:
-        def __init__(self):
-            self._row = {"id": "000...", "plan": "free", "total_tokens": 10, "used_tokens": 5}
-        def select(self, *_args, **_kwargs):
-            row = self._row
-            class R:
-                def eq(self, *_a, **_k):
-                    class E:
-                        @property
-                        def data(self):
-                            return [row]
-                    return E()
-            return R()
         def update(self, obj):
-            class R:
-                def eq(self, *_a, **_k):
-                    class E:
-                        @property
-                        def data(self):
-                            return [obj]
-                    return E()
-            return R()
+            return MockUpdate(obj)
+
     class MockSupabase:
         def table(self, _):
             return MockTable()
 
-    from services import supabase_client
-    monkeypatch.setattr(supabase_client, "get_supabase_client", lambda: MockSupabase())
+    monkeypatch.setattr(tokens_router, "get_supabase_client", lambda: MockSupabase())
 
     app = FastAPI()
     app.include_router(tokens_router.router, prefix="/api/token")
-    async with AsyncClient(app=app, base_url="http://test") as ac:  # type: ignore
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         resp = await ac.post("/api/token/consume", json={"amount": 2}, headers={"Authorization": "Bearer x"})
-        assert resp.status_code in (200, 404, 405)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["used_tokens"] == 7
+        assert data["remaining_tokens"] == 3
 
 @pytest.mark.asyncio
 async def test_token_consume_over_limit(monkeypatch):
     async def mock_verify(token):
         return {"id": "00000000-0000-0000-0000-000000000000"}
-    from services import auth as auth_service
-    monkeypatch.setattr(auth_service, "verify_token", mock_verify)
+    monkeypatch.setattr(tokens_router, "verify_token", mock_verify)
 
-    class MockTable:
-        def __init__(self):
-            self._row = {"id": "000...", "plan": "free", "total_tokens": 1, "used_tokens": 1}
-        def select(self, *_args, **_kwargs):
-            row = self._row
-            class R:
-                def eq(self, *_a, **_k):
-                    class E:
-                        @property
-                        def data(self):
-                            return [row]
-                    return E()
-            return R()
-    class MockSupabase:
-        def table(self, _):
-            return MockTable()
-
-    from services import supabase_client
-    monkeypatch.setattr(supabase_client, "get_supabase_client", lambda: MockSupabase())
+    async def mock_get_or_create(uid: str):
+        return {"plan": "free", "total_tokens": 1, "used_tokens": 1, "last_used": None}
+    monkeypatch.setattr(tokens_router, "_get_or_create_token_row", mock_get_or_create)
 
     app = FastAPI()
     app.include_router(tokens_router.router, prefix="/api/token")
-    async with AsyncClient(app=app, base_url="http://test") as ac:  # type: ignore
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         resp = await ac.post("/api/token/consume", json={"amount": 1}, headers={"Authorization": "Bearer x"})
-        assert resp.status_code in (403, 404, 405)
+        assert resp.status_code == 403
 
 @pytest.mark.asyncio
 async def test_user_consent(monkeypatch):
+    from routers import consent as consent_router
+
     async def mock_verify(token):
         return {"id": "00000000-0000-0000-0000-000000000000"}
-    from services import auth as auth_service
-    monkeypatch.setattr(auth_service, "verify_token", mock_verify)
+    monkeypatch.setattr(consent_router, "verify_token", mock_verify)
 
     class MockTable:
         def update(self, obj):
@@ -146,11 +113,14 @@ async def test_user_consent(monkeypatch):
         def table(self, _):
             return MockTable()
 
-    from services import supabase_client
-    monkeypatch.setattr(supabase_client, "get_supabase_client", lambda: MockSupabase())
+    monkeypatch.setattr(consent_router, "get_supabase_client", lambda: MockSupabase())
 
     app = FastAPI()
     app.include_router(consent_router.router, prefix="/api/user")
-    async with AsyncClient(app=app, base_url="http://test") as ac:  # type: ignore
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         resp = await ac.post("/api/user/consent", headers={"Authorization": "Bearer x"})
-        assert resp.status_code in (200, 404, 405)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["success"] is True
+        assert data["consent_given"] is True
