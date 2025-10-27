@@ -78,7 +78,8 @@ export const Pricing = () => {
       window.location.href = '/checkout/pro'
     } else {
       // Contact sales
-      window.location.href = 'mailto:sales@salesvision.ai'
+      const salesEmail = import.meta.env.VITE_SALES_EMAIL || 'sales@example.com'
+      window.location.href = `mailto:${salesEmail}`
     }
   }
 
