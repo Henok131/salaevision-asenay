@@ -88,6 +88,21 @@ async def test_token_consume_over_limit(monkeypatch):
         return {"plan": "free", "total_tokens": 1, "used_tokens": 1, "last_used": None}
     monkeypatch.setattr(tokens_router, "_get_or_create_token_row", mock_get_or_create)
 
+    # Patch supabase client to avoid env reads
+    class DummySupabase:
+        def table(self, _):
+            return self
+        def update(self, _):
+            return self
+        def eq(self, *_a, **_k):
+            return self
+        def execute(self):
+            return self
+        @property
+        def data(self):
+            return []
+    monkeypatch.setattr(tokens_router, "get_supabase_client", lambda: DummySupabase())
+
     app = FastAPI()
     app.include_router(tokens_router.router, prefix="/api/token")
     transport = httpx.ASGITransport(app=app)
