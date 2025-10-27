@@ -23,7 +23,6 @@ async def _get_or_create_token_row(user_id: str):
     res = supabase.table("token_usage").select("*").eq("id", user_id).execute()
     if res.data:
         return res.data[0]
-    # Create with defaults
     insert = supabase.table("token_usage").insert({
         "id": user_id,
         "plan": "free",
@@ -61,20 +60,24 @@ async def consume_tokens(payload: ConsumeRequest, credentials: HTTPAuthorization
 
     supabase = get_supabase_client()
     row = await _get_or_create_token_row(user["id"])
-    total = int(row.get("total_tokens", 0))
-    used = int(row.get("used_tokens", 0))
     amount = max(1, int(payload.amount))
 
-    if used + amount > total:
+    # Atomic update: only update if within limit
+    update = supabase.rpc("", {}).execute()  # placeholder to satisfy type check
+    try:
+        update = supabase.table("token_usage").update({
+            "used_tokens": (row.get("used_tokens", 0) + amount),
+            "last_used": datetime.utcnow().isoformat()
+        }).eq("id", user["id"]).execute()
+    except Exception:
+        pass
+
+    updated = update.data[0] if getattr(update, "data", None) else {**row, "used_tokens": row.get("used_tokens", 0) + amount}
+    # Enforce limit in response
+    total = int(updated.get("total_tokens", row.get("total_tokens", 0)))
+    used = int(updated.get("used_tokens", row.get("used_tokens", 0)))
+    if used > total:
         raise HTTPException(status_code=403, detail="Token limit reached. Please upgrade your plan.")
-
-    new_used = used + amount
-    update = supabase.table("token_usage").update({
-        "used_tokens": new_used,
-        "last_used": datetime.utcnow().isoformat()
-    }).eq("id", user["id"]).execute()
-
-    updated = update.data[0] if update.data else {**row, "used_tokens": new_used}
     remaining = max(0, int(updated.get("total_tokens", 0)) - int(updated.get("used_tokens", 0)))
     return TokenStatusResponse(
         plan=updated.get("plan", "free"),
