@@ -43,20 +43,20 @@ async def test_token_consume_under_limit(monkeypatch):
         return {"plan": "free", "total_tokens": 10, "used_tokens": 5, "last_used": None}
     monkeypatch.setattr(tokens_router, "_get_or_create_token_row", mock_get_or_create)
 
-    class E:
-        def __init__(self, obj):
-            self._obj = obj
-        @property
-        def data(self):
-            return [self._obj]
-        def execute(self):
-            return self
-
     class MockUpdate:
         def __init__(self, obj):
             self.obj = obj
         def eq(self, *_a, **_k):
-            return E(self.obj)
+            combined = {"plan": "free", "total_tokens": 10, **self.obj}
+            class E:
+                def __init__(self, combined):
+                    self._combined = combined
+                @property
+                def data(self):
+                    return [self._combined]
+                def execute(self):
+                    return self
+            return E(combined)
 
     class MockTable:
         def update(self, obj):
