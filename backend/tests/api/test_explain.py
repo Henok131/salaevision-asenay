@@ -328,8 +328,8 @@ def test_generate_shap_explanations_full_branch():
     assert len(fi) == 3
     assert all('feature' in f for f in fi)
     assert all('impact' in f for f in fi)
-    # Validate either boolean positive flag or string impact
-    assert all(('positive' in f and isinstance(f['positive'], bool)) or (f.get('impact') in ('positive','negative')) for f in fi)
+    # Require both boolean positive flag and impact string presence
+    assert all(isinstance(f.get('positive'), bool) and f.get('impact') in ('positive', 'negative') for f in fi)
     ins = out['insights']
     assert len(ins) == 3
 
