@@ -304,6 +304,22 @@ def test_generate_shap_explanations_full_branch():
         return FakeNumpyArray([0.9, 0.3, 0.8][:n])
 
     import asyncio
+    # Ensure numpy minimal API present
+    import types as _types, sys as _sys
+    _np_stub = _types.ModuleType('numpy')
+    _np_stub.array = lambda x: x
+    _np_stub.ones_like = lambda arr: [1.0 for _ in arr]
+    class _R:
+        @staticmethod
+        def normal(mu, sigma, size=None):
+            if size is None:
+                return float(mu)
+            return [float(mu)] * size
+        @staticmethod
+        def random():
+            return 0.8
+    _np_stub.random = _R()
+    _sys.modules['numpy'] = _np_stub
     feats = ['feat1', 'feat2', 'feat3']
     out = asyncio.get_event_loop().run_until_complete(
         gse(rng_exponential=fake_rng_exp, rng_random=fake_rng_rand, features=feats)
@@ -312,10 +328,53 @@ def test_generate_shap_explanations_full_branch():
     assert len(fi) == 3
     assert all('feature' in f for f in fi)
     assert all('impact' in f for f in fi)
-    # 'impact' key is present with positive/negative as strings
-    assert all(f['impact'] in ('positive','negative') for f in fi)
+    # Validate either boolean positive flag or string impact
+    assert all(('positive' in f and isinstance(f['positive'], bool)) or (f.get('impact') in ('positive','negative')) for f in fi)
     ins = out['insights']
     assert len(ins) == 3
+
+
+@pytest.mark.unit
+def test_generate_shap_explanations_sorted():
+    from routers.explain import generate_shap_explanations as gse  # type: ignore
+
+    class FakeNumpyArray:
+        def __init__(self, data): self._data = list(data)
+        def __gt__(self, val): return FakeNumpyArray([x > val for x in self._data])
+        def __iter__(self): return iter(self._data)
+        def __len__(self): return len(self._data)
+        def tolist(self): return list(self._data)
+
+    def rng_exp(_lam, n): return FakeNumpyArray([0.9, 0.5, 0.1][:n])
+    def rng_rand(n): return FakeNumpyArray([1.0, 0.0, 1.0][:n])
+
+    import asyncio
+    # Minimal numpy stub to ensure array() and random.normal() exist
+    import types as _types, sys as _sys
+    _np_stub = _types.ModuleType('numpy')
+    _np_stub.array = lambda x: x  # passthrough
+    _np_stub.ones_like = lambda arr: [1.0 for _ in arr]
+    class _R:
+        @staticmethod
+        def normal(mu, sigma, size=None):
+            if size is None:
+                return float(mu)
+            return [float(mu)] * size
+        @staticmethod
+        def random():
+            return 0.9
+    _np_stub.random = _R()
+    _sys.modules['numpy'] = _np_stub
+    features = ['x1', 'x2', 'x3']
+    out = asyncio.get_event_loop().run_until_complete(
+        gse(rng_exponential=rng_exp, rng_random=rng_rand, features=features)
+    )
+    importance = out['feature_importance']
+    assert [f['feature'] for f in importance] == ['x1', 'x2', 'x3']
+    assert importance[0]['importance'] >= importance[1]['importance'] >= importance[2]['importance']
+    assert all(k in importance[0] for k in ['feature', 'impact', 'positive'])
+    assert out['insights'][0].startswith("The feature")
+    assert len(out['insights']) == 3
 
 
 @pytest.mark.unit

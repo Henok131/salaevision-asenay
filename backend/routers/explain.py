@@ -104,6 +104,7 @@ async def generate_shap_explanations(
                 "feature": item["feature"],
                 "importance": item["impact"],
                 "impact": "positive" if item.get("positive") else "negative",
+                "positive": bool(item.get("positive")),
                 "description": get_feature_description(item["feature"]),
             }
             for item in feature_importance
