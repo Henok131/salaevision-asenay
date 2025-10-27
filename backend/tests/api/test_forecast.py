@@ -385,6 +385,13 @@ def test_generate_prophet_forecast_happy_path(monkeypatch):
                 def strftime(self, fmt):
                     return [v.strftime(fmt) for v in self._vals]
             return DT(self)
+        @property
+        def iloc(self):
+            outer = self
+            class ILoc:
+                def __getitem__(self_inner, idx):
+                    return outer[idx]
+            return ILoc()
         def tolist(self):
             return list(self)
 
@@ -422,6 +429,19 @@ def test_generate_prophet_forecast_happy_path(monkeypatch):
             return PredictFrame(ds, len(ds))
 
     # Patch into module
+    # Some environments may stub numpy without these attrs; set them directly
+    try:
+        monkeypatch.setattr(f.np, 'arange', lambda n: list(range(n)))
+    except AttributeError:
+        f.np.arange = lambda n: list(range(n))
+    try:
+        monkeypatch.setattr(f.np, 'sin', lambda arr: [0.0] * (len(arr) if hasattr(arr, '__len__') else 1))
+    except AttributeError:
+        f.np.sin = lambda arr: [0.0] * (len(arr) if hasattr(arr, '__len__') else 1)
+    try:
+        monkeypatch.setattr(f.np, 'pi', 3.141592653589793)
+    except AttributeError:
+        f.np.pi = 3.141592653589793
     # Pandas may be stubbed; if date_range missing, inject it
     if not hasattr(f.pd, 'date_range'):
         class _PDM: pass

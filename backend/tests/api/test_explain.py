@@ -205,3 +205,47 @@ def test_explain_generate_fallback_explanations_shape():
     assert 'shap_values' in out
     assert 'insights' in out
     assert 'model_confidence' in out
+
+
+@pytest.mark.unit
+def test_generate_sample_shap_values_and_insights_branches(monkeypatch):
+    from routers import explain as e
+
+    # Force np.random to cover both positive/negative branches and deterministic outputs
+    class RNG:
+        seq = [0.9, 0.1, 0.6, 0.4, 0.51, 0.49, 0.8, 0.2, 0.7, 0.3]
+        i = 0
+        @staticmethod
+        def exponential(_lam, size):
+            # Importance scores; ensure all positive and diverse
+            return [0.3 for _ in range(size)]
+        @staticmethod
+        def normal(_mu, _sigma):
+            return 0.0
+        @staticmethod
+        def random():
+            v = RNG.seq[RNG.i % len(RNG.seq)]
+            RNG.i += 1
+            return v
+        @staticmethod
+        def seed(_):
+            return None
+
+    monkeypatch.setattr(e.np, 'random', RNG)
+    # Run sample shap values
+    features = ["F1", "F2", "F3"]
+    shap = e.generate_sample_shap_values(features)
+    assert 'sample_predictions' in shap and 'summary' in shap
+    s = shap['summary']
+    assert 'total_features' in s and s['total_features'] == len(features)
+
+    # Build feature_importance to hit generate_explanation_insights
+    fi = [
+        {"feature": "F1", "importance": 0.5, "impact": "positive", "description": e.get_feature_description("F1")},
+        {"feature": "F2", "importance": 0.3, "impact": "negative", "description": e.get_feature_description("F2")},
+        {"feature": "unknown", "importance": 0.2, "impact": "positive", "description": e.get_feature_description("unknown")},
+    ]
+    insights = e.generate_explanation_insights(fi)
+    assert 'key_drivers' in insights and 'recommendations' in insights and 'risk_factors' in insights
+    # Default description fallback used for unknown
+    assert e.get_feature_description('unknown').startswith('Feature impact')
